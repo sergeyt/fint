@@ -3,8 +3,8 @@
 ECMA-335 CIL interpreter in pure F#
 
 # TODO
-- [ ] make hello.exe with custom print method without dependency on corlib
-- [ ] read PE, etc headers
+- [x] make hello.exe with custom print method without dependency on corlib
+- [x] read PE, etc headers
 - [ ] define metadata schema
 - [ ] metadata reader
 - [ ] method reader

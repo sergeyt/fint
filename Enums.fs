@@ -1,0 +1,30 @@
+module Fint.Enums
+
+open System
+
+type TargetArchitecture =
+    | I386 = 0x014c
+    | AMD64 = 0x8664
+    | IA64 = 0x0200
+    | ARMv7 = 0x01c4
+
+type ModuleKind =
+    | Dll = 0
+    | Windows = 1
+    | Console = 2
+
+[<FlagsAttribute>]
+type ModuleAttributes =
+    | ILOnly = 1
+    | Required32Bit = 2
+    | StrongNameSigned = 8
+    | Preferred32Bit = 0x00020000
+
+[<FlagsAttribute>]
+type ModuleCharacteristics =
+    | HighEntropyVA = 0x0020
+    | DynamicBase = 0x0040
+    | NoSEH = 0x0400
+    | NXCompat = 0x0100
+    | AppContainer = 0x1000
+    | TerminalServerAware = 0x8000
