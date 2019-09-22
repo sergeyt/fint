@@ -64,11 +64,10 @@ let ResolveModuleKind(characteristics : uint16, subsystem : uint16) =
     else ModuleKind.Console
 
 let ReadBytes(reader : BinaryReader, size : int) =
-    seq {
-        for _ in 1..size -> reader.ReadByte()
-    }
-    |> List.ofSeq
-    |> List.toArray
+    let buf: byte array = Array.zeroCreate(size)
+    let n = reader.Read(buf, 0, size)
+    assert(n = size)
+    buf
 
 let ReadZeroTerminatedString(reader : BinaryReader, length : int) =
     let bytes = ReadBytes(reader, length)
