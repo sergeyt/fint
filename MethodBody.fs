@@ -6,16 +6,7 @@ open System.IO
 open System.Reflection
 open System.Reflection.Emit
 open Fint.Enums
-
-let ReadBytes(reader : BinaryReader, size : int) =
-    let buf : byte array = Array.zeroCreate (size)
-    let n = reader.Read(buf, 0, size)
-    assert(n = size)
-    buf
-
-let Align4(reader : BinaryReader) =
-    reader.BaseStream.Position <- ((reader.BaseStream.Position + 3L) / 4L) * 4L
-    ()
+open Fint.IO
 
 type SwitchTarget = int32 array
 

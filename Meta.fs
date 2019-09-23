@@ -89,6 +89,8 @@ let codedIndexMap =
             { bits = 1
               tables = [| TableId.TypeDef; TableId.MethodDef |] }) ]
 
+let CodedIdx id = codedIndexMap.[id]
+
 type TableIndex =
     { table : TableId
       index : int }
@@ -118,8 +120,23 @@ let decodeTableIndex (token : uint32) =
 type ColumnType =
   | Int32
   | Int16
-  | StringIdx
-  | BlobIdx
-  | TableIdx
+  | StringIndex
+  | BlobIndex
+  | GuidIndex
+  | TableIndex
   | CodedIndex
 
+type Column = {
+  name: string;
+  valueType: ColumnType;
+  table: TableId option;
+  codedIndex: CodedIndex option;
+}
+
+type Table = {
+  id: TableId;
+  rowCount: int;
+  rowSize: int;
+  offset: int64;
+  size: int;
+}

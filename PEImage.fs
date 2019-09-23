@@ -3,6 +3,7 @@ module Fint.PEImage
 open System
 open System.IO
 open Fint.Enums
+open Fint.IO
 
 type Section =
     { Name : string
@@ -41,9 +42,6 @@ type PEImage =
       Resources : DataDirectory
       StrongName : DataDirectory }
 
-let skip (reader : BinaryReader, size : int) =
-    reader.BaseStream.Position <- reader.BaseStream.Position + int64 size
-    ()
 
 let ReadArchitecture(reader : BinaryReader) =
     let target : TargetArchitecture = enum (int (reader.ReadUInt16()))
@@ -63,25 +61,8 @@ let ResolveModuleKind(characteristics : uint16, subsystem : uint16) =
         ModuleKind.Windows
     else ModuleKind.Console
 
-let ReadBytes(reader : BinaryReader, size : int) =
-    let buf: byte array = Array.zeroCreate(size)
-    let n = reader.Read(buf, 0, size)
-    assert(n = size)
-    buf
-
-let ReadZeroTerminatedString(reader : BinaryReader, length : int) =
-    let bytes = ReadBytes(reader, length)
-    let nonZero t = int t <> 0
-    let toChar t = (char) t
-    bytes
-    |> Seq.takeWhile nonZero
-    |> Seq.map toChar
-    |> List.ofSeq
-    |> List.toArray
-    |> String
-
 let ReadSection(reader : BinaryReader) =
-    let s : Section =
+    let result : Section =
         { Name = ReadZeroTerminatedString(reader, 8)
           VirtualSize = reader.ReadUInt32()
           VirtualAddress = reader.ReadUInt32()
@@ -92,7 +73,7 @@ let ReadSection(reader : BinaryReader) =
           NumberOfRelocations = reader.ReadUInt16()
           NumberOfLineNumbers = reader.ReadUInt16()
           Characteristics = reader.ReadUInt32() }
-    s
+    result
 
 let ReadSections(reader : BinaryReader, count : int) =
     seq {
@@ -107,7 +88,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // Lfanew: 4
     // End: 64
     if reader.ReadUInt16() <> uint16 0x5a4d then invalidOp "bad DOS magic"
-    skip (reader, 58)
+    Skip(reader, 58)
     reader.BaseStream.Position <- int64 (reader.ReadUInt32())
     // PE NT signature
     if reader.ReadUInt32() <> 0x00004550u then invalidOp "bad NT magic"
@@ -118,7 +99,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // PointerToSymbolTable: 4
     // NumberOfSymbols: 4
     // OptionalHeaderSize: 2
-    skip (reader, 14)
+    Skip(reader, 14)
     // Characteristics: 2
     let characteristics = reader.ReadUInt16()
     // - PEOptionalHeader
@@ -147,7 +128,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // ImageSize: 4
     // HeaderSize: 4
     // FileChecksum: 4
-    skip (reader, 66)
+    Skip(reader, 66)
     // SubSystem: 2
     let subsystem = reader.ReadUInt16()
     // DLLFlags: 2
@@ -165,7 +146,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // ExceptionTable: 8
     // CertificateTable: 8
     // BaseRelocationTable: 8
-    skip (reader,
+    Skip(reader,
           (if pe64 then 88
            else 72))
     // Debug: 8
@@ -177,12 +158,12 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // BoundImport: 8
     // IAT: 8
     // DelayImportDescriptor: 8
-    skip (reader, 56)
+    Skip(reader, 56)
     // CLIHeader: 8
     let cliHeader = ReadDataDirectory(reader)
     if IsEmptyDirectory(cliHeader) then invalidOp ("not a CLI image")
     // Reserved: 8
-    skip (reader, 8)
+    Skip(reader, 8)
     let moduleKind = ResolveModuleKind(characteristics, subsystem)
     let characteristics : ModuleCharacteristics = enum (int dllCharacteristics)
     let sections = ReadSections(reader, int numberOfSections)
@@ -193,7 +174,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // Cb: 4
     // MajorRuntimeVersion: 2
     // MinorRuntimeVersion: 2
-    skip (reader, 8)
+    Skip(reader, 8)
     let metadata = ReadDataDirectory(reader)
     let attributes : ModuleAttributes = enum (int (reader.ReadUInt32()))
     // EntryPointToken: 4
