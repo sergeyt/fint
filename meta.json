@@ -1,0 +1,309 @@
+{
+  "Assembly": {
+    "$id": "0x20",
+    "$specSection": "22.2",
+    "HashAlgId": "Int32",
+    "MajorVersion": "Int16",
+    "MinorVersion": "Int16",
+    "BuildNumber": "Int16",
+    "RevisionNumber": "Int16",
+    "Flags": "Int32",
+    "PublicKey": "BlobIndex",
+    "Name": "StringIndex",
+    "Culture": "StringIndex"
+  },
+  "AssemblyOS": {
+    "$id": "0x22",
+    "$specSection": "22.3",
+    "OSPlatformId": "Int32",
+    "OSMajorVersion": "Int32",
+    "OSMinorVersion": "Int32"
+  },
+  "AssemblyProcessor": {
+    "$id": "0x21",
+    "$specSection": "22.4",
+    "Processor": "Int32"
+  },
+  "AssemblyRef": {
+    "$id": "0x23",
+    "$specSection": "22.5",
+    "MajorVersion": "Int16",
+    "MinorVersion": "Int16",
+    "BuildNumber": "Int16",
+    "RevisionNumber": "Int16",
+    "Flags": "Int32",
+    "PublicKeyOrToken": "BlobIndex",
+    "Name": "StringIndex",
+    "Culture": "StringIndex",
+    "HashValue": "BlobIndex"
+  },
+  "AssemblyRefOS": {
+    "$id": "0x25",
+    "$specSection": "22.6",
+    "OSPlatformId": "Int32",
+    "OSMajorVersion": "Int32",
+    "OSMinorVersion": "Int32",
+    "AssemblyRef": "TableId.AssemblyRef"
+  },
+  "AssemblyRefProcessor": {
+    "$id": "0x24",
+    "$specSection": "22.7",
+    "Processor": "Int32",
+    "AssemblyRef": "TableId.AssemblyRef"
+  },
+  "ClassLayout": {
+    "$id": "0x0F",
+    "$description": "The ClassLayout table is used to define how the fields of a class or value type shall be laid out by the CLI.",
+    "$specSection": "22.8",
+    "PackingSize": "Int16",
+    "ClassSize": "Int32",
+    "Parent": "TableId.TypeDef"
+  },
+  "Constant": {
+    "$id": "0x0B",
+    "$description": "The Constant table is used to store compile-time, constant values for fields, parameters, and properties.",
+    "$specSection": "22.9",
+    "Type": "Int16",
+    "Parent": "CodedIdx.HasConstant",
+    "Value": "BlobIndex"
+  },
+  "CustomAttribute": {
+    "$id": "0x0C",
+    "$specSection": "22.10",
+    "Parent": "CodedIdx.HasCustomAttribute",
+    "Type": "CodedIdx.CustomAttributeType",
+    "Value": "BlobIndex"
+  },
+  "DeclSecurity": {
+    "$id": "0x0E",
+    "$specSection": "22.11",
+    "Action": "Int16",
+    "Parent": "CodedIdx.HasDeclSecurity",
+    "PermissionSet": "BlobIndex"
+  },
+  "EventMap": {
+    "$id": "0x12",
+    "$specSection": "22.12",
+    "Parent": "TableId.TypeDef",
+    "EventList": "TableId.Event"
+  },
+  "Event": {
+    "$id": "0x14",
+    "$specSection": "22.13",
+    "EventFlags": "Int16",
+    "Name": "StringIndex",
+    "EventType": "CodedIdx.TypeDefOrRef"
+  },
+  "ExportedType": {
+    "$id": "0x27",
+    "$specSection": "22.14",
+    "Flags": "Int32",
+    "TypeDefId": "Int32",
+    "TypeName": "StringIndex",
+    "TypeNamespace": "StringIndex",
+    "Implementation": "CodedIdx.Implementation"
+  },
+  "Field": {
+    "$id": "0x04",
+    "$specSection": "22.15",
+    "Flags": "Int16",
+    "Name": "StringIndex",
+    "Signature": "BlobIndex"
+  },
+  "FieldLayout": {
+    "$id": "0x10",
+    "$specSection": "22.16",
+    "Offset": "Int32",
+    "Field": "TableId.Field"
+  },
+  "FieldMarshal": {
+    "$id": "0x0D",
+    "$specSection": "22.17",
+    "Parent": "CodedIdx.HasFieldMarshal",
+    "NativeType": "BlobIndex"
+  },
+  "FieldRVA": {
+    "$id": "0x1D",
+    "$specSection": "22.18",
+    "RVA": "Int32",
+    "Field": "TableId.Field"
+  },
+  "File": {
+    "$id": "0x26",
+    "$specSection": "22.19",
+    "Flags": "Int32",
+    "Name": "StringIndex",
+    "HashValue": "BlobIndex"
+  },
+  "GenericParam": {
+    "$id": "0x2A",
+    "$specSection": "22.20",
+    "Number": "Int16",
+    "Flags": "Int16",
+    "Owner": "CodedIdx.TypeOrMethodDef",
+    "Name": "StringIndex"
+  },
+  "GenericParamConstraint": {
+    "$id": "0x2C",
+    "$specSection": "22.21",
+    "Owner": "TableId.GenericParam",
+    "Constraint": "CodedIdx.TypeDefOrRef"
+  },
+  "ImplMap": {
+    "$id": "0x1C",
+    "$specSection": "22.22",
+    "MappingFlags": "Int16",
+    "MemberForwarded": "CodedIdx.MemberForwarded",
+    "ImportName": "StringIndex",
+    "ImportScope": "TableId.ModuleRef"
+  },
+  "InterfaceImpl": {
+    "$id": "0x09",
+    "$specSection": "22.23",
+    "Class": "TableId.TypeDef",
+    "Interface": "CodedIdx.TypeDefOrRef"
+  },
+  "ManifestResource": {
+    "$id": "0x28",
+    "$specSection": "22.24",
+    "Offset": "Int32",
+    "Flags": "Int32",
+    "Name": "StringIndex",
+    "Implementation": "CodedIdx.Implementation"
+  },
+  "MemberRef": {
+    "$id": "0x0A",
+    "$specSection": "22.25",
+    "$description": "The MemberRef table combines two sorts of references, to Methods and to Fields of a class, known as MethodRef and FieldRef, respectively.",
+    "Class": "CodedIdx.MemberRefParent",
+    "Name": "StringIndex",
+    "Signature": "BlobIndex"
+  },
+  "MethodDef": {
+    "$id": "0x06",
+    "$specSection": "22.26",
+    "RVA": "Int32",
+    "ImplFlags": "Int16",
+    "Flags": "Int16",
+    "Name": "StringIndex",
+    "Signature": "BlobIndex",
+    "ParamList": "TableId.Param"
+  },
+  "MethodImpl": {
+    "$id": "0x19",
+    "$specSection": "22.27",
+    "$description": "MethodImpl tables let a compiler override the default inheritance rules provided by the CLI.",
+    "Class": "TableId.TypeDef",
+    "MethodBody": "CodedIdx.MethodDefOrRef",
+    "MethodDeclaration": "CodedIdx.MethodDefOrRef"
+  },
+  "MethodSemantics": {
+    "$id": "0x18",
+    "$specSection": "22.28",
+    "Semantics": "Int16",
+    "Method": "TableId.MethodDef",
+    "Association": "CodedIdx.HasSemantics"
+  },
+  "MethodSpec": {
+    "$id": "0x2B",
+    "$specSection": "22.29",
+    "Method": "CodedIdx.MethodDefOrRef",
+    "Instantiation": "BlobIndex"
+  },
+  "Module": {
+    "$id": "0x00",
+    "$specSection": "22.30",
+    "Generation": "Int16",
+    "Name": "StringIndex",
+    "Mvid": "GuidIndex",
+    "EncId": "GuidIndex",
+    "EncBaseId": "GuidIndex"
+  },
+  "ModuleRef": {
+    "$id": "0x1A",
+    "$specSection": "22.31",
+    "Name": "StringIndex"
+  },
+  "NestedClass": {
+    "$id": "0x29",
+    "$specSection": "22.32",
+    "Class": "TableId.TypeDef",
+    "EnclosingClass": "TableId.TypeDef"
+  },
+  "Param": {
+    "$id": "0x08",
+    "$specSection": "22.33",
+    "Flags": "Int16",
+    "Sequence": "Int16",
+    "Name": "StringIndex"
+  },
+  "Property": {
+    "$id": "0x17",
+    "$specSection": "22.34",
+    "Flags": "Int16",
+    "Name": "StringIndex",
+    "Type": "BlobIndex"
+  },
+  "PropertyMap": {
+    "$id": "0x15",
+    "$specSection": "22.35",
+    "Parent": "TableId.TypeDef",
+    "PropertyList": "TableId.Property"
+  },
+  "StandAloneSig": {
+    "$id": "0x11",
+    "$specSection": "22.36",
+    "Signature": "BlobIndex"
+  },
+  "TypeDef": {
+    "$id": "0x02",
+    "$specSection": "22.37",
+    "Flags": "Int32",
+    "TypeName": "StringIndex",
+    "TypeNamespace": "StringIndex",
+    "Extends": "CodedIdx.TypeDefOrRef",
+    "FieldList": "TableId.Field",
+    "MethodList": "TableId.MethodDef"
+  },
+  "TypeRef": {
+    "$id": "0x01",
+    "$specSection": "22.38",
+    "ResolutionScope": "CodedIdx.ResolutionScope",
+    "TypeName": "StringIndex",
+    "TypeNamespace": "StringIndex"
+  },
+  "TypeSpec": {
+    "$id": "0x1B",
+    "$specSection": "22.39",
+    "Signature": "BlobIndex"
+  },
+  "FieldPtr": {
+    "$id": "3",
+    "Field": "TableId.Field"
+  },
+  "MethodPtr": {
+    "$id": "5",
+    "Method": "TableId.MethodDef"
+  },
+  "ParamPtr": {
+    "$id": "7",
+    "Param": "TableId.Param"
+  },
+  "EventPtr": {
+    "$id": "19",
+    "Event": "TableId.Event"
+  },
+  "PropertyPtr": {
+    "$id": "22",
+    "Property": "TableId.Property"
+  },
+  "EncodingLog": {
+    "$id": "30",
+    "Token": "Int32",
+    "FuncCode": "Int32"
+  },
+  "EncodingMap": {
+    "$id": "31",
+    "Token": "Int32"
+  }
+}
