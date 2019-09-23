@@ -5,56 +5,55 @@ open System
 open Fint.Enums
 open Fint.Meta
 
-let CodedIdx id = Some(codedIndexMap.[id])
+let I32 = Int32(0)
+let I16 = Int16(int16 0)
+let STR = StringIndex(0)
+let BLOB = BlobIndex(0)
+let CodedIdx id = CodedIndex(codedIndexMap.[id])
+
+let Table id =
+    TableIndex({ table = id
+                 index = 0 })
 
 // 22.2 Assembly : 0x20
 module Assembly =
     let HashAlgId : Column =
         { name = "HashAlgId"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let MajorVersion : Column =
         { name = "MajorVersion"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let MinorVersion : Column =
         { name = "MinorVersion"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let BuildNumber : Column =
         { name = "BuildNumber"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let RevisionNumber : Column =
         { name = "RevisionNumber"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     // see AssemblyFlags
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let PublicKey : Column =
         { name = "PublicKey"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Culture : Column =
         { name = "Culture"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     // Assembly Columns
     let Columns =
         [| HashAlgId; MajorVersion; MinorVersion; BuildNumber; RevisionNumber;
@@ -64,19 +63,16 @@ module Assembly =
 module AssemblyOS =
     let OSPlatformId : Column =
         { name = "OSPlatformId"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let OSMajorVersion : Column =
         { name = "OSMajorVersion"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let OSMinorVersion : Column =
         { name = "OSMinorVersion"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // AssemblyOS Columns
     let Columns = [| OSPlatformId; OSMajorVersion; OSMinorVersion |]
 
@@ -84,9 +80,8 @@ module AssemblyOS =
 module AssemblyProcessor =
     let Processor : Column =
         { name = "Processor"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // AssemblyProcessor Columns
     let Columns = [| Processor |]
 
@@ -94,50 +89,41 @@ module AssemblyProcessor =
 module AssemblyRef =
     let MajorVersion : Column =
         { name = "MajorVersion"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let MinorVersion : Column =
         { name = "MinorVersion"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let BuildNumber : Column =
         { name = "BuildNumber"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let RevisionNumber : Column =
         { name = "RevisionNumber"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     // see AssemblyFlags
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let PublicKeyOrToken : Column =
         { name = "PublicKeyOrToken"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Culture : Column =
         { name = "Culture"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let HashValue : Column =
         { name = "HashValue"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // AssemblyRef Columns
     let Columns =
         [| MajorVersion; MinorVersion; BuildNumber; RevisionNumber; Flags;
@@ -147,24 +133,20 @@ module AssemblyRef =
 module AssemblyRefOS =
     let OSPlatformId : Column =
         { name = "OSPlatformId"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let OSMajorVersion : Column =
         { name = "OSMajorVersion"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let OSMinorVersion : Column =
         { name = "OSMinorVersion"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let AssemblyRef : Column =
         { name = "AssemblyRef"
-          valueType = TableIndex
-          table = Some TableId.AssemblyRef
-          codedIndex = None }
+          value = Table TableId.AssemblyRef }
+
     // AssemblyRefOS Columns
     let Columns =
         [| OSPlatformId; OSMajorVersion; OSMinorVersion; AssemblyRef |]
@@ -173,14 +155,12 @@ module AssemblyRefOS =
 module AssemblyRefProcessor =
     let Processor : Column =
         { name = "Processor"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let AssemblyRef : Column =
         { name = "AssemblyRef"
-          valueType = TableIndex
-          table = Some TableId.AssemblyRef
-          codedIndex = None }
+          value = Table TableId.AssemblyRef }
+
     // AssemblyRefProcessor Columns
     let Columns = [| Processor; AssemblyRef |]
 
@@ -188,19 +168,16 @@ module AssemblyRefProcessor =
 module ClassLayout =
     let PackingSize : Column =
         { name = "PackingSize"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let ClassSize : Column =
         { name = "ClassSize"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let Parent : Column =
         { name = "Parent"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     // ClassLayout Columns
     let Columns = [| PackingSize; ClassSize; Parent |]
 
@@ -208,19 +185,16 @@ module ClassLayout =
 module Constant =
     let Type : Column =
         { name = "Type"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Parent : Column =
         { name = "Parent"
-          valueType = CodedIndex
-          codedIndex = CodedIdx HasConstant
-          table = None }
+          value = CodedIdx HasConstant }
+
     let Value : Column =
         { name = "Value"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // Constant Columns
     let Columns = [| Type; Parent; Value |]
 
@@ -228,19 +202,16 @@ module Constant =
 module CustomAttribute =
     let Parent : Column =
         { name = "Parent"
-          valueType = CodedIndex
-          codedIndex = CodedIdx HasCustomAttribute
-          table = None }
+          value = CodedIdx HasCustomAttribute }
+
     let Type : Column =
         { name = "Type"
-          valueType = CodedIndex
-          codedIndex = CodedIdx CustomAttributeType
-          table = None }
+          value = CodedIdx CustomAttributeType }
+
     let Value : Column =
         { name = "Value"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // CustomAttribute Columns
     let Columns = [| Parent; Type; Value |]
 
@@ -248,19 +219,16 @@ module CustomAttribute =
 module DeclSecurity =
     let Action : Column =
         { name = "Action"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Parent : Column =
         { name = "Parent"
-          valueType = CodedIndex
-          codedIndex = CodedIdx HasDeclSecurity
-          table = None }
+          value = CodedIdx HasDeclSecurity }
+
     let PermissionSet : Column =
         { name = "PermissionSet"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // DeclSecurity Columns
     let Columns = [| Action; Parent; PermissionSet |]
 
@@ -268,14 +236,12 @@ module DeclSecurity =
 module EventMap =
     let Parent : Column =
         { name = "Parent"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     let EventList : Column =
         { name = "EventList"
-          valueType = TableIndex
-          table = Some TableId.Event
-          codedIndex = None }
+          value = Table TableId.Event }
+
     // EventMap Columns
     let Columns = [| Parent; EventList |]
 
@@ -284,19 +250,16 @@ module Event =
     // see EventAttributes
     let EventFlags : Column =
         { name = "EventFlags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let EventType : Column =
         { name = "EventType"
-          valueType = CodedIndex
-          codedIndex = CodedIdx TypeDefOrRef
-          table = None }
+          value = CodedIdx TypeDefOrRef }
+
     // Event Columns
     let Columns = [| EventFlags; Name; EventType |]
 
@@ -305,29 +268,24 @@ module ExportedType =
     // see TypeAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let TypeDefId : Column =
         { name = "TypeDefId"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let TypeName : Column =
         { name = "TypeName"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let TypeNamespace : Column =
         { name = "TypeNamespace"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Implementation : Column =
         { name = "Implementation"
-          valueType = CodedIndex
-          codedIndex = CodedIdx Implementation
-          table = None }
+          value = CodedIdx Implementation }
+
     // ExportedType Columns
     let Columns =
         [| Flags; TypeDefId; TypeName; TypeNamespace; Implementation |]
@@ -337,19 +295,16 @@ module Field =
     // see FieldAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Signature : Column =
         { name = "Signature"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // Field Columns
     let Columns = [| Flags; Name; Signature |]
 
@@ -357,14 +312,12 @@ module Field =
 module FieldLayout =
     let Offset : Column =
         { name = "Offset"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let Field : Column =
         { name = "Field"
-          valueType = TableIndex
-          table = Some TableId.Field
-          codedIndex = None }
+          value = Table TableId.Field }
+
     // FieldLayout Columns
     let Columns = [| Offset; Field |]
 
@@ -372,14 +325,12 @@ module FieldLayout =
 module FieldMarshal =
     let Parent : Column =
         { name = "Parent"
-          valueType = CodedIndex
-          codedIndex = CodedIdx HasFieldMarshal
-          table = None }
+          value = CodedIdx HasFieldMarshal }
+
     let NativeType : Column =
         { name = "NativeType"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // FieldMarshal Columns
     let Columns = [| Parent; NativeType |]
 
@@ -388,14 +339,12 @@ module FieldRVA =
     // 0. RVA : Int32
     let RVA : Column =
         { name = "RVA"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let Field : Column =
         { name = "Field"
-          valueType = TableIndex
-          table = Some TableId.Field
-          codedIndex = None }
+          value = Table TableId.Field }
+
     // FieldRVA Columns
     let Columns = [| RVA; Field |]
 
@@ -404,19 +353,16 @@ module File =
     // see FileFlags
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let HashValue : Column =
         { name = "HashValue"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // File Columns
     let Columns = [| Flags; Name; HashValue |]
 
@@ -424,25 +370,21 @@ module File =
 module GenericParam =
     let Number : Column =
         { name = "Number"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     // see GenericParamAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Owner : Column =
         { name = "Owner"
-          valueType = CodedIndex
-          codedIndex = CodedIdx TypeOrMethodDef
-          table = None }
+          value = CodedIdx TypeOrMethodDef }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     // GenericParam Columns
     let Columns = [| Number; Flags; Owner; Name |]
 
@@ -450,14 +392,12 @@ module GenericParam =
 module GenericParamConstraint =
     let Owner : Column =
         { name = "Owner"
-          valueType = TableIndex
-          table = Some TableId.GenericParam
-          codedIndex = None }
+          value = Table TableId.GenericParam }
+
     let Constraint : Column =
         { name = "Constraint"
-          valueType = CodedIndex
-          codedIndex = CodedIdx TypeDefOrRef
-          table = None }
+          value = CodedIdx TypeDefOrRef }
+
     // GenericParamConstraint Columns
     let Columns = [| Owner; Constraint |]
 
@@ -466,24 +406,20 @@ module ImplMap =
     // see PInvokeAttributes
     let MappingFlags : Column =
         { name = "MappingFlags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let MemberForwarded : Column =
         { name = "MemberForwarded"
-          valueType = CodedIndex
-          codedIndex = CodedIdx MemberForwarded
-          table = None }
+          value = CodedIdx MemberForwarded }
+
     let ImportName : Column =
         { name = "ImportName"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let ImportScope : Column =
         { name = "ImportScope"
-          valueType = TableIndex
-          table = Some TableId.ModuleRef
-          codedIndex = None }
+          value = Table TableId.ModuleRef }
+
     // ImplMap Columns
     let Columns = [| MappingFlags; MemberForwarded; ImportName; ImportScope |]
 
@@ -491,14 +427,12 @@ module ImplMap =
 module InterfaceImpl =
     let Class : Column =
         { name = "Class"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     let Interface : Column =
         { name = "Interface"
-          valueType = CodedIndex
-          codedIndex = CodedIdx TypeDefOrRef
-          table = None }
+          value = CodedIdx TypeDefOrRef }
+
     // InterfaceImpl Columns
     let Columns = [| Class; Interface |]
 
@@ -506,25 +440,21 @@ module InterfaceImpl =
 module ManifestResource =
     let Offset : Column =
         { name = "Offset"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // see ManifestResourceAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Implementation : Column =
         { name = "Implementation"
-          valueType = CodedIndex
-          codedIndex = CodedIdx Implementation
-          table = None }
+          value = CodedIdx Implementation }
+
     // ManifestResource Columns
     let Columns = [| Offset; Flags; Name; Implementation |]
 
@@ -532,19 +462,16 @@ module ManifestResource =
 module MemberRef =
     let Class : Column =
         { name = "Class"
-          valueType = CodedIndex
-          codedIndex = CodedIdx MemberRefParent
-          table = None }
+          value = CodedIdx MemberRefParent }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Signature : Column =
         { name = "Signature"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // MemberRef Columns
     let Columns = [| Class; Name; Signature |]
 
@@ -552,36 +479,30 @@ module MemberRef =
 module MethodDef =
     let RVA : Column =
         { name = "RVA"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // see MethodImplAttributes
     let ImplFlags : Column =
         { name = "ImplFlags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     // see MethodAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Signature : Column =
         { name = "Signature"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     let ParamList : Column =
         { name = "ParamList"
-          valueType = TableIndex
-          table = Some TableId.Param
-          codedIndex = None }
+          value = Table TableId.Param }
+
     // MethodDef Columns
     let Columns = [| RVA; ImplFlags; Flags; Name; Signature; ParamList |]
 
@@ -589,19 +510,16 @@ module MethodDef =
 module MethodImpl =
     let Class : Column =
         { name = "Class"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     let MethodBody : Column =
         { name = "MethodBody"
-          valueType = CodedIndex
-          codedIndex = CodedIdx MethodDefOrRef
-          table = None }
+          value = CodedIdx MethodDefOrRef }
+
     let MethodDeclaration : Column =
         { name = "MethodDeclaration"
-          valueType = CodedIndex
-          codedIndex = CodedIdx MethodDefOrRef
-          table = None }
+          value = CodedIdx MethodDefOrRef }
+
     // MethodImpl Columns
     let Columns = [| Class; MethodBody; MethodDeclaration |]
 
@@ -610,19 +528,16 @@ module MethodSemantics =
     // see MethodSemanticsAttributes
     let Semantics : Column =
         { name = "Semantics"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Method : Column =
         { name = "Method"
-          valueType = TableIndex
-          table = Some TableId.MethodDef
-          codedIndex = None }
+          value = Table TableId.MethodDef }
+
     let Association : Column =
         { name = "Association"
-          valueType = CodedIndex
-          codedIndex = CodedIdx HasSemantics
-          table = None }
+          value = CodedIdx HasSemantics }
+
     // MethodSemantics Columns
     let Columns = [| Semantics; Method; Association |]
 
@@ -630,14 +545,12 @@ module MethodSemantics =
 module MethodSpec =
     let Method : Column =
         { name = "Method"
-          valueType = CodedIndex
-          codedIndex = CodedIdx MethodDefOrRef
-          table = None }
+          value = CodedIdx MethodDefOrRef }
+
     let Instantiation : Column =
         { name = "Instantiation"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // MethodSpec Columns
     let Columns = [| Method; Instantiation |]
 
@@ -645,29 +558,24 @@ module MethodSpec =
 module Module =
     let Generation : Column =
         { name = "Generation"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Mvid : Column =
         { name = "Mvid"
-          valueType = GuidIndex
-          table = None
-          codedIndex = None }
+          value = GuidIndex(0) }
+
     let EncId : Column =
         { name = "EncId"
-          valueType = GuidIndex
-          table = None
-          codedIndex = None }
+          value = GuidIndex(0) }
+
     let EncBaseId : Column =
         { name = "EncBaseId"
-          valueType = GuidIndex
-          table = None
-          codedIndex = None }
+          value = GuidIndex(0) }
+
     // Module Columns
     let Columns = [| Generation; Name; Mvid; EncId; EncBaseId |]
 
@@ -675,9 +583,8 @@ module Module =
 module ModuleRef =
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     // ModuleRef Columns
     let Columns = [| Name |]
 
@@ -685,14 +592,12 @@ module ModuleRef =
 module NestedClass =
     let Class : Column =
         { name = "Class"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     let EnclosingClass : Column =
         { name = "EnclosingClass"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     // NestedClass Columns
     let Columns = [| Class; EnclosingClass |]
 
@@ -701,19 +606,16 @@ module Param =
     // see ParamAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Sequence : Column =
         { name = "Sequence"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     // Param Columns
     let Columns = [| Flags; Sequence; Name |]
 
@@ -722,19 +624,16 @@ module Property =
     // see PropertyAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int16
-          table = None
-          codedIndex = None }
+          value = I16 }
+
     let Name : Column =
         { name = "Name"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Type : Column =
         { name = "Type"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // Property Columns
     let Columns = [| Flags; Name; Type |]
 
@@ -742,14 +641,12 @@ module Property =
 module PropertyMap =
     let Parent : Column =
         { name = "Parent"
-          valueType = TableIndex
-          table = Some TableId.TypeDef
-          codedIndex = None }
+          value = Table TableId.TypeDef }
+
     let PropertyList : Column =
         { name = "PropertyList"
-          valueType = TableIndex
-          table = Some TableId.Property
-          codedIndex = None }
+          value = Table TableId.Property }
+
     // PropertyMap Columns
     let Columns = [| Parent; PropertyList |]
 
@@ -757,9 +654,8 @@ module PropertyMap =
 module StandAloneSig =
     let Signature : Column =
         { name = "Signature"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // StandAloneSig Columns
     let Columns = [| Signature |]
 
@@ -768,34 +664,28 @@ module TypeDef =
     // see TypeAttributes
     let Flags : Column =
         { name = "Flags"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let TypeName : Column =
         { name = "TypeName"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let TypeNamespace : Column =
         { name = "TypeNamespace"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let Extends : Column =
         { name = "Extends"
-          valueType = CodedIndex
-          codedIndex = CodedIdx TypeDefOrRef
-          table = None }
+          value = CodedIdx TypeDefOrRef }
+
     let FieldList : Column =
         { name = "FieldList"
-          valueType = TableIndex
-          table = Some TableId.Field
-          codedIndex = None }
+          value = Table TableId.Field }
+
     let MethodList : Column =
         { name = "MethodList"
-          valueType = TableIndex
-          table = Some TableId.MethodDef
-          codedIndex = None }
+          value = Table TableId.MethodDef }
+
     // TypeDef Columns
     let Columns =
         [| Flags; TypeName; TypeNamespace; Extends; FieldList; MethodList |]
@@ -804,19 +694,16 @@ module TypeDef =
 module TypeRef =
     let ResolutionScope : Column =
         { name = "ResolutionScope"
-          valueType = CodedIndex
-          codedIndex = CodedIdx ResolutionScope
-          table = None }
+          value = CodedIdx ResolutionScope }
+
     let TypeName : Column =
         { name = "TypeName"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     let TypeNamespace : Column =
         { name = "TypeNamespace"
-          valueType = StringIndex
-          table = None
-          codedIndex = None }
+          value = STR }
+
     // TypeRef Columns
     let Columns = [| ResolutionScope; TypeName; TypeNamespace |]
 
@@ -824,9 +711,8 @@ module TypeRef =
 module TypeSpec =
     let Signature : Column =
         { name = "Signature"
-          valueType = BlobIndex
-          table = None
-          codedIndex = None }
+          value = BLOB }
+
     // TypeSpec Columns
     let Columns = [| Signature |]
 
@@ -834,9 +720,8 @@ module TypeSpec =
 module FieldPtr =
     let Field : Column =
         { name = "Field"
-          valueType = TableIndex
-          table = Some TableId.Field
-          codedIndex = None }
+          value = Table TableId.Field }
+
     // FieldPtr Columns
     let Columns = [| Field |]
 
@@ -844,9 +729,8 @@ module FieldPtr =
 module MethodPtr =
     let Method : Column =
         { name = "Method"
-          valueType = TableIndex
-          table = Some TableId.MethodDef
-          codedIndex = None }
+          value = Table TableId.MethodDef }
+
     // MethodPtr Columns
     let Columns = [| Method |]
 
@@ -854,9 +738,8 @@ module MethodPtr =
 module ParamPtr =
     let Param : Column =
         { name = "Param"
-          valueType = TableIndex
-          table = Some TableId.Param
-          codedIndex = None }
+          value = Table TableId.Param }
+
     // ParamPtr Columns
     let Columns = [| Param |]
 
@@ -864,9 +747,8 @@ module ParamPtr =
 module EventPtr =
     let Event : Column =
         { name = "Event"
-          valueType = TableIndex
-          table = Some TableId.Event
-          codedIndex = None }
+          value = Table TableId.Event }
+
     // EventPtr Columns
     let Columns = [| Event |]
 
@@ -874,9 +756,8 @@ module EventPtr =
 module PropertyPtr =
     let Property : Column =
         { name = "Property"
-          valueType = TableIndex
-          table = Some TableId.Property
-          codedIndex = None }
+          value = Table TableId.Property }
+
     // PropertyPtr Columns
     let Columns = [| Property |]
 
@@ -884,14 +765,12 @@ module PropertyPtr =
 module EncodingLog =
     let Token : Column =
         { name = "Token"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     let FuncCode : Column =
         { name = "FuncCode"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // EncodingLog Columns
     let Columns = [| Token; FuncCode |]
 
@@ -899,9 +778,8 @@ module EncodingLog =
 module EncodingMap =
     let Token : Column =
         { name = "Token"
-          valueType = Int32
-          table = None
-          codedIndex = None }
+          value = I32 }
+
     // EncodingMap Columns
     let Columns = [| Token |]
 

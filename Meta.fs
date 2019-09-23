@@ -116,19 +116,17 @@ let decodeTableIndex (token : uint32) =
 
 // data types of metadata column
 type ColumnType =
-  | Int32
-  | Int16
-  | StringIndex
-  | BlobIndex
-  | GuidIndex
-  | TableIndex
-  | CodedIndex
+  | Int32 of int32
+  | Int16 of int16
+  | StringIndex of int32
+  | BlobIndex of int32
+  | GuidIndex of int32
+  | TableIndex of TableIndex
+  | CodedIndex of CodedIndex
 
 type Column = {
   name: string;
-  valueType: ColumnType;
-  table: TableId option;
-  codedIndex: CodedIndex option;
+  value: ColumnType;
 }
 
 type Table = {
