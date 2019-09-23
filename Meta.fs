@@ -89,8 +89,6 @@ let codedIndexMap =
             { bits = 1
               tables = [| TableId.TypeDef; TableId.MethodDef |] }) ]
 
-let CodedIdx id = codedIndexMap.[id]
-
 type TableIndex =
     { table : TableId
       index : int }
