@@ -2,6 +2,7 @@ module Fint.IO
 
 open System
 open System.IO
+open System.Text
 
 let ReadBytes(reader : BinaryReader, size : int) =
     let buf : byte array = Array.zeroCreate (size)
@@ -27,3 +28,33 @@ let ReadZeroTerminatedString(reader : BinaryReader, length : int) =
     |> List.ofSeq
     |> List.toArray
     |> String
+
+let ReadAlignedString(reader: BinaryReader, maxLength: int) =
+    let mutable read = 0
+    let chars() = seq {
+        let mutable reading = true
+        while reading && read < maxLength do
+            let current = reader.ReadByte()
+            reading <- current <> byte 0
+            read <- read + (if reading then 1 else 0)
+            if reading then yield [(char)current] |> Seq.ofList
+            else yield Seq.empty<char>
+    }
+    let s: string = chars() |> Seq.concat |> Seq.toArray |> String
+    let align = -1 + ((read + 4) &&& (~~~3)) - read
+    Skip(reader, align)
+    s
+
+let ReadUTF8(reader: BinaryReader, bytesToRead: int) =
+    let readBytesZ() =
+        seq {
+            let mutable reading = true
+            while reading do
+                let b: byte = reader.ReadByte()
+                reading <- int b <> 0
+                if reading then yield [b] |> Seq.ofList
+                else yield Seq.empty<byte>
+        } |> Seq.concat |> Seq.toArray
+    let bytes = if bytesToRead > 0 then ReadBytes(reader, bytesToRead) else readBytesZ()
+    Encoding.UTF8.GetString(bytes)
+ 

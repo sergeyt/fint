@@ -7,9 +7,8 @@ open Fint.IO
 
 let ReadTables(reader : BinaryReader, image : PEImage) =
     // goto metadata
-    reader.BaseStream.Position <- ResolveVirtualAddress
-                                      (image.Sections,
-                                       image.Metadata.VirtualAddress)
+    let startOffset = ResolveVirtualAddress(image.Sections, image.Metadata.VirtualAddress)
+    reader.BaseStream.Position <- startOffset
     // Metadata Header
     // Signature
     if (reader.ReadUInt32() <> 0x424A5342u) then
@@ -23,3 +22,12 @@ let ReadTables(reader : BinaryReader, image : PEImage) =
     Align4(reader)
     // Flags: 2
     Skip(reader, 2)
+    // heap headers
+    let heapHeader _ = 
+        {|
+        offset = startOffset + int64 (reader.ReadUInt32());
+        size = reader.ReadUInt32();
+        name = ReadAlignedString(reader, 16);
+        |}
+    let heapHeaders = [ 1 .. int (reader.ReadUInt16()) ] |> List.map heapHeader
+    heapHeaders
