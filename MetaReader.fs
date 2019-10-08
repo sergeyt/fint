@@ -37,61 +37,59 @@ let MetaReader(reader : BinaryReader) =
     Skip(reader, 2)
     // heap headers
     let heapHeader _ = 
-        {|
-        offset = startOffset + int64 (reader.ReadUInt32());
-        size = int(reader.ReadUInt32());
-        name = ReadAlignedString(reader, 16);
-        |}
-    let heapNum = int (reader.ReadUInt16());
-    let heapHeaders = [ 1 .. heapNum ] |> List.map heapHeader
+        let offset = startOffset + int64 (reader.ReadUInt32())
+        let size = int(reader.ReadUInt32())
+        let name = ReadAlignedString(reader, 16)
+        {| offset = offset; size = size; name = name; |}
+    let streamNum = int (reader.ReadUInt16());
+    let streams = [ 1 .. streamNum ] |> List.map heapHeader
 
     // heap locations
-    let tableAddr = heapHeaders |> List.find (fun t -> t.name = "#-" || t.name = "#~")
-    let strAddr = heapHeaders |> List.tryFind (fun t -> t.name = "#Strings")
-    let usAddr = heapHeaders |> List.tryFind (fun t -> t.name = "#US") // user strings
-    let guidAddr = heapHeaders |> List.tryFind (fun t -> t.name = "#GUID")
-    let blobAddr = heapHeaders |> List.tryFind (fun t -> t.name = "#Blob")
+    let tableStream = streams |> List.find (fun t -> t.name = "#-" || t.name = "#~")
+    let stringStream = streams |> List.tryFind (fun t -> t.name = "#Strings")
+    let usStream = streams |> List.tryFind (fun t -> t.name = "#US") // user strings
+    let guidStream = streams |> List.tryFind (fun t -> t.name = "#GUID")
+    let blobStream = streams |> List.tryFind (fun t -> t.name = "#Blob")
 
     // read headers of metadata tables
-    Move(reader, tableAddr.offset)
-    Skip(reader, 4) //reserved: 4, always 0
+    Move(reader, tableStream.offset)
+    // Reserved: 4, always 0
+    // MajorVersion: 1
+    // MinorVersion: 1
+    Skip(reader, 6)
+    let heapSizes = int (reader.ReadByte())
+    Skip(reader, 1) //reserved: 1, always 1
+    let validTables = reader.ReadUInt64()
+    let sortedTables = reader.ReadUInt64()
 
-    let metaHeader = {|
-        MajorVersion = reader.ReadByte();
-        MinorVersion = reader.ReadByte();
-        HeapSizes = int (reader.ReadByte());
-        Reserved = reader.ReadByte(); //reserved: 1, always 1
-        Valid = reader.ReadUInt64();
-        Sorted = reader.ReadUInt64();
-    |}
-
-    let stringIndexSize = if (metaHeader.HeapSizes &&& 1) = 0 then 2 else 4
-    let guidIndexSize = if (metaHeader.HeapSizes &&& 2) = 0 then 2 else 4
-    let blobIndexSize = if (metaHeader.HeapSizes &&& 4) = 0 then 2 else 4
+    let stringIndexSize = if (heapSizes &&& 1) = 0 then 2 else 4
+    let guidIndexSize = if (heapSizes &&& 2) = 0 then 2 else 4
+    let blobIndexSize = if (heapSizes &&& 4) = 0 then 2 else 4
 
     // read table row counts and calculate table size
     let readRowCount i =
         let readOne i =
-            let id: TableId = enum i 
+            let rowCount = reader.ReadInt32()
+            let id: TableId = enum i
             {|
                 id = id;
-                rowCount = reader.ReadInt32();
-                isSorted = ((metaHeader.Sorted >>> i) &&& 1UL) <> 0UL;
+                rowCount = rowCount;
+                isSorted = ((sortedTables >>> i) &&& 1UL) <> 0UL;
             |}
         // if bit is set table is presented, otherwise it is empty
-        if (((metaHeader.Valid >>> i) &&& 1UL) = 0UL) then None
+        if (((validTables >>> i) &&& 1UL) = 0UL) then None
         else Some (readOne i)
 
-    let rowCounts = [ 0 .. 63 ] |> List.map readRowCount
+    let rowCounts = [| 0 .. 63 |] |> Array.map readRowCount
     let rowCount id =
         match rowCounts.[int id] with
             | None -> 0
             | Some t -> t.rowCount
     let sizeOfIndex n = if n >= 0x10000 then 4 else 2
-    let mutable codedIndexSizes = dict []
+    let mutable codedIndexSizes = new Dictionary<CodedIndexId, int>()
     let codedIndexSize i =
         let calc() =
-            let maxRowCount = i.tables |> Seq.ofArray |> Seq.map rowCount |> Seq.max
+            let maxRowCount = i.tables |> Array.map rowCount |> Array.max
             sizeOfIndex (maxRowCount <<< i.bits)
         tryGet codedIndexSizes i.id calc
 
@@ -136,12 +134,12 @@ let MetaReader(reader : BinaryReader) =
 
     let readCell (col: ComputedColumn) =
         let readStr i =
-            Move(reader, strAddr.Value.offset + int64 i)
+            Move(reader, stringStream.Value.offset + int64 i)
             ReadUTF8(reader, -1)
 
         let readGuid i =
             let guids = lazy (
-                let heap = guidAddr.Value
+                let heap = guidStream.Value
                 seq {
                     Move(reader, heap.offset)
                     let mutable size = heap.size
@@ -154,7 +152,7 @@ let MetaReader(reader : BinaryReader) =
             else guids.Value.[i - 1]
 
         let readBlob i =
-            Move(reader, blobAddr.Value.offset + int64 i)
+            Move(reader, blobStream.Value.offset + int64 i)
             let size = ReadPackedInt(reader)
             ReadBytes(reader, size)
 
@@ -192,13 +190,22 @@ let MetaReader(reader : BinaryReader) =
         cells
 
     let dump() =
-        let dumpTable table = 
+        let dumpCell col =
+            let cell = readCell col
+            match cell with
+                | Int16Cell t -> t :> obj
+                | Int32Cell t -> t :> obj
+                | StringCell t -> t() :> obj
+                | GuidCell t -> t() :> obj
+                | BlobCell t -> sprintf "BLOB[%d]" (t().Length) :> obj
+                | TableIndexCell t -> t :> obj
+        let dumpTable table =
             let dumpRow idx =
                 seekRow table idx
-                let cells = table.columns |> Array.map (fun c -> {|name=c.name;value=readCell c;|})
+                let cells = table.columns |> Array.map (fun c -> {|name=c.name;value=dumpCell c;|})
                 cells
-            let rows = [ 0 .. table.rowCount - 1 ] |> List.map dumpRow
-            {|table=table.id; rows=rows|}
+            let rows = [| 0 .. table.rowCount - 1 |] |> Array.map dumpRow
+            {|table=table.id; tableId=int table.id; rows=rows|}
         tables |> List.filter (fun t -> t.IsSome) |> List.map (fun t -> dumpTable t.Value)
 
     {|
