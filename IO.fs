@@ -34,11 +34,9 @@ let Skip (reader : BinaryReader, size : int) =
 
 let ReadZeroTerminatedString(reader : BinaryReader, length : int) =
     let bytes = ReadBytes(reader, length)
-    let nonZero t = int t <> 0
-    let toChar t = (char) t
     bytes
-    |> Seq.takeWhile nonZero
-    |> Seq.map toChar
+    |> Seq.takeWhile (fun t -> int t <> 0)
+    |> Seq.map char
     |> List.ofSeq
     |> List.toArray
     |> String
@@ -56,6 +54,7 @@ let ReadAlignedString(reader: BinaryReader, maxLength: int) =
     }
     let s: string = chars() |> Seq.concat |> Seq.toArray |> String
     let align = -1 + ((read + 4) &&& ~~~3) - read
+    printfn "%s %d" s align
     Skip(reader, align)
     s
 
