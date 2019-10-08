@@ -89,7 +89,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // End: 64
     if reader.ReadUInt16() <> uint16 0x5a4d then invalidOp "bad DOS magic"
     Skip(reader, 58)
-    reader.BaseStream.Position <- int64 (reader.ReadUInt32())
+    Move(reader, int64 (reader.ReadUInt32()))
     // PE NT signature
     if reader.ReadUInt32() <> 0x00004550u then invalidOp "bad NT magic"
     // - PEFileHeader
@@ -168,8 +168,7 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     let characteristics : ModuleCharacteristics = enum (int dllCharacteristics)
     let sections = ReadSections(reader, int numberOfSections)
     // reader CLI header
-    reader.BaseStream.Position <- ResolveVirtualAddress
-                                      (sections, cliHeader.VirtualAddress)
+    Move(reader, ResolveVirtualAddress(sections, cliHeader.VirtualAddress))
     // CLIHeader
     // Cb: 4
     // MajorRuntimeVersion: 2

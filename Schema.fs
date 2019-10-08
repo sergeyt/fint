@@ -189,7 +189,7 @@ module Constant =
 
     let Parent : Column =
         { name = "Parent"
-          value = CodedIdx HasConstant }
+          value = CodedIdx CodedIndexId.HasConstant }
 
     let Value : Column =
         { name = "Value"
@@ -202,11 +202,11 @@ module Constant =
 module CustomAttribute =
     let Parent : Column =
         { name = "Parent"
-          value = CodedIdx HasCustomAttribute }
+          value = CodedIdx CodedIndexId.HasCustomAttribute }
 
     let Type : Column =
         { name = "Type"
-          value = CodedIdx CustomAttributeType }
+          value = CodedIdx CodedIndexId.CustomAttributeType }
 
     let Value : Column =
         { name = "Value"
@@ -223,7 +223,7 @@ module DeclSecurity =
 
     let Parent : Column =
         { name = "Parent"
-          value = CodedIdx HasDeclSecurity }
+          value = CodedIdx CodedIndexId.HasDeclSecurity }
 
     let PermissionSet : Column =
         { name = "PermissionSet"
@@ -258,7 +258,7 @@ module Event =
 
     let EventType : Column =
         { name = "EventType"
-          value = CodedIdx TypeDefOrRef }
+          value = CodedIdx CodedIndexId.TypeDefOrRef }
 
     // Event Columns
     let Columns = [| EventFlags; Name; EventType |]
@@ -284,7 +284,7 @@ module ExportedType =
 
     let Implementation : Column =
         { name = "Implementation"
-          value = CodedIdx Implementation }
+          value = CodedIdx CodedIndexId.Implementation }
 
     // ExportedType Columns
     let Columns =
@@ -325,7 +325,7 @@ module FieldLayout =
 module FieldMarshal =
     let Parent : Column =
         { name = "Parent"
-          value = CodedIdx HasFieldMarshal }
+          value = CodedIdx CodedIndexId.HasFieldMarshal }
 
     let NativeType : Column =
         { name = "NativeType"
@@ -379,7 +379,7 @@ module GenericParam =
 
     let Owner : Column =
         { name = "Owner"
-          value = CodedIdx TypeOrMethodDef }
+          value = CodedIdx CodedIndexId.TypeOrMethodDef }
 
     let Name : Column =
         { name = "Name"
@@ -396,7 +396,7 @@ module GenericParamConstraint =
 
     let Constraint : Column =
         { name = "Constraint"
-          value = CodedIdx TypeDefOrRef }
+          value = CodedIdx CodedIndexId.TypeDefOrRef }
 
     // GenericParamConstraint Columns
     let Columns = [| Owner; Constraint |]
@@ -410,7 +410,7 @@ module ImplMap =
 
     let MemberForwarded : Column =
         { name = "MemberForwarded"
-          value = CodedIdx MemberForwarded }
+          value = CodedIdx CodedIndexId.MemberForwarded }
 
     let ImportName : Column =
         { name = "ImportName"
@@ -431,7 +431,7 @@ module InterfaceImpl =
 
     let Interface : Column =
         { name = "Interface"
-          value = CodedIdx TypeDefOrRef }
+          value = CodedIdx CodedIndexId.TypeDefOrRef }
 
     // InterfaceImpl Columns
     let Columns = [| Class; Interface |]
@@ -453,7 +453,7 @@ module ManifestResource =
 
     let Implementation : Column =
         { name = "Implementation"
-          value = CodedIdx Implementation }
+          value = CodedIdx CodedIndexId.Implementation }
 
     // ManifestResource Columns
     let Columns = [| Offset; Flags; Name; Implementation |]
@@ -462,7 +462,7 @@ module ManifestResource =
 module MemberRef =
     let Class : Column =
         { name = "Class"
-          value = CodedIdx MemberRefParent }
+          value = CodedIdx CodedIndexId.MemberRefParent }
 
     let Name : Column =
         { name = "Name"
@@ -514,11 +514,11 @@ module MethodImpl =
 
     let MethodBody : Column =
         { name = "MethodBody"
-          value = CodedIdx MethodDefOrRef }
+          value = CodedIdx CodedIndexId.MethodDefOrRef }
 
     let MethodDeclaration : Column =
         { name = "MethodDeclaration"
-          value = CodedIdx MethodDefOrRef }
+          value = CodedIdx CodedIndexId.MethodDefOrRef }
 
     // MethodImpl Columns
     let Columns = [| Class; MethodBody; MethodDeclaration |]
@@ -536,7 +536,7 @@ module MethodSemantics =
 
     let Association : Column =
         { name = "Association"
-          value = CodedIdx HasSemantics }
+          value = CodedIdx CodedIndexId.HasSemantics }
 
     // MethodSemantics Columns
     let Columns = [| Semantics; Method; Association |]
@@ -545,7 +545,7 @@ module MethodSemantics =
 module MethodSpec =
     let Method : Column =
         { name = "Method"
-          value = CodedIdx MethodDefOrRef }
+          value = CodedIdx CodedIndexId.MethodDefOrRef }
 
     let Instantiation : Column =
         { name = "Instantiation"
@@ -676,7 +676,7 @@ module TypeDef =
 
     let Extends : Column =
         { name = "Extends"
-          value = CodedIdx TypeDefOrRef }
+          value = CodedIdx CodedIndexId.TypeDefOrRef }
 
     let FieldList : Column =
         { name = "FieldList"
@@ -694,7 +694,7 @@ module TypeDef =
 module TypeRef =
     let ResolutionScope : Column =
         { name = "ResolutionScope"
-          value = CodedIdx ResolutionScope }
+          value = CodedIdx CodedIndexId.ResolutionScope }
 
     let TypeName : Column =
         { name = "TypeName"

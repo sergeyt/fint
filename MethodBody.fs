@@ -135,9 +135,9 @@ let readInstructions (reader : BinaryReader, codeSize : int) =
         seq {
             let mutable offset = 0
             while offset < codeSize do
-                let pos = reader.BaseStream.Position
+                let pos = GetPosition(reader)
                 let i = readInstruction (reader)
-                let size = int (reader.BaseStream.Position - pos)
+                let size = int (GetPosition(reader) - pos)
                 offset <- offset + size
                 yield i
         }
