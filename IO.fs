@@ -46,15 +46,14 @@ let ReadAlignedString(reader: BinaryReader, maxLength: int) =
     let chars() = seq {
         let mutable reading = true
         while reading && read < maxLength do
-            let current = int (reader.ReadByte())
-            reading <- current <> 0
+            let current = char (reader.ReadByte())
+            reading <- current <> char 0
             read <- read + (if reading then 1 else 0)
-            if reading then yield [(char)current] |> Seq.ofList
-            else yield Seq.empty<char>
+            if reading then yield String(current, 1)
+            else yield ""
     }
-    let s: string = chars() |> Seq.concat |> Seq.toArray |> String
+    let s: string = chars() |> Seq.toArray |> String.Concat
     let align = -1 + ((read + 4) &&& ~~~3) - read
-    printfn "%s %d" s align
     Skip(reader, align)
     s
 
