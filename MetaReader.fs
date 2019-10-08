@@ -25,7 +25,7 @@ let MetaReader(reader : BinaryReader) =
     // Metadata Header
     // Signature
     if (reader.ReadUInt32() <> 0x424A5342u) then
-        raise (invalidOp ("invalid metadata header"))
+        invalidOp "invalid metadata header"
     // MajorVersion: 2
     // MinorVersion: 2
     // Reserved: 4

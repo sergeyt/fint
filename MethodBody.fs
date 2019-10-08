@@ -113,7 +113,7 @@ let readOperand (reader : BinaryReader, opCode : OpCode) =
     | OperandType.InlineR -> Float64(reader.ReadDouble())
     | OperandType.ShortInlineR -> Float32(reader.ReadSingle())
     | OperandType.InlineString -> StringIdx(reader.ReadInt32())
-    | _ -> raise (invalidOp "not implemented")
+    | _ -> invalidOp "not implemented"
 
 let readOpCode (reader : BinaryReader) =
     let i = int (reader.ReadByte())
@@ -248,4 +248,4 @@ let readMethodBody (reader : BinaryReader) =
     | MethodBodyFlags.FatFormat -> readFatMethod()
     | MethodBodyFlags.TinyFormat -> readTinyMethod()
     | MethodBodyFlags.TinyFormat1 -> readTinyMethod()
-    | _ -> raise (invalidOp "bad method format")
+    | _ -> invalidOp "bad method format"

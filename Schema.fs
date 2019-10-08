@@ -830,4 +830,4 @@ let TableColumns id =
     | TableId.PropertyPtr -> PropertyPtr.Columns
     | TableId.EncodingLog -> EncodingLog.Columns
     | TableId.EncodingMap -> EncodingMap.Columns
-    | _ -> raise (ArgumentOutOfRangeException("id"))
+    | _ -> raise <| ArgumentOutOfRangeException("id")
