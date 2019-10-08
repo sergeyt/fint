@@ -55,7 +55,7 @@ let ReadAlignedString(reader: BinaryReader, maxLength: int) =
             else yield Seq.empty<char>
     }
     let s: string = chars() |> Seq.concat |> Seq.toArray |> String
-    let align = -1 + ((read + 4) &&& (~~~3)) - read
+    let align = -1 + ((read + 4) &&& ~~~3) - read
     Skip(reader, align)
     s
 
