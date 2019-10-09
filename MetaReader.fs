@@ -166,7 +166,7 @@ let MetaReader(reader : BinaryReader) =
 
     let findTable tableId =
         match tables.[int tableId] with
-            | None -> invalidArg "table" (sprintf "table %A does not exist" tableId)
+            | None -> invalidArg "tableId" (sprintf "table %A does not exist" tableId)
             | Some t -> t
 
     let seekRow table idx =
