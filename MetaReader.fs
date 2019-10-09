@@ -7,6 +7,7 @@ open Fint.Enums
 open Fint.Meta
 open Fint.PEImage
 open Fint.IO
+open Fint.MethodBody
 
 let tryGet (d : IDictionary<'k, 'v>) (key : 'k) (init: unit -> 'v) =
     let setup =
@@ -182,6 +183,41 @@ let MetaReader(reader : BinaryReader) =
         let cells = table.columns |> Array.map readCell
         cells
 
+    let moveToRVA (rva: uint32) =
+        let offset = ResolveVirtualAddress(image.Sections, rva)
+        Move(reader, offset)
+        reader
+
+    let cellInt32 cell =
+        match cell with
+            | Int32Cell t -> t
+            | _ -> invalidOp "expected int32 cell"
+
+    let cellStr cell =
+        match cell with
+            | StringCell t -> t()
+            | _ -> invalidOp "expected string cell"
+
+    let readMethod idx =
+        let bodyReader(rva: uint32) =
+            let result() =
+                if rva = 0u then None
+                else Some (readMethodBody(moveToRVA(rva)))
+            result
+        let row = readRow TableId.MethodDef idx
+        let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
+        let method: MethodDef = {
+            rva=rva;
+            name=cellStr(row.[Schema.MethodDef.Name.index]);
+            body=bodyReader(rva);
+        }
+        method
+
+    let readEntryPoint() =
+        let p = decodeTableIndex(image.EntryPointToken)
+        if p.table = TableId.MethodDef then Some (readMethod p.index)
+        else None
+
     let dump() =
         let dumpCell col =
             let cell = readCell col
@@ -205,5 +241,7 @@ let MetaReader(reader : BinaryReader) =
         image = image;
         tables = tables;
         readRow = readRow;
+        readMethod = readMethod;
+        readEntryPoint = readEntryPoint;
         dump = dump
     |}

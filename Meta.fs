@@ -2,6 +2,7 @@ module Fint.Meta
 
 open System
 open Fint.Enums
+open Fint.MethodBody
 
 type CodedIndexId =
     | CustomAttributeType = 0
@@ -148,6 +149,7 @@ type CellType =
   | TableIndexCell of TableIndex
 
 type Column = {
+  index: int;
   name: string;
   value: ColumnType;
 }
@@ -167,3 +169,9 @@ type Table = {
   isSorted: bool;
   columns: ComputedColumn array;
 }
+
+type MethodDef = {
+  rva: uint32;
+  name: string;
+  body: unit -> MethodBody option;
+};

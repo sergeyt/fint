@@ -9,4 +9,6 @@ let main argv =
     let reader = new BinaryReader(input)
     let meta = MetaReader(reader)
     printfn "%A" (meta.dump())
+    let entry = meta.readEntryPoint()
+    printfn "%A" (entry.Value.body())
     0 // return an integer exit code

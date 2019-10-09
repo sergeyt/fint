@@ -11,14 +11,14 @@ open Fint.IO
 type SwitchTarget = int32 array
 
 type InstructionOperand =
-    | None
-    | Int32 of int32
-    | Int64 of int64
-    | Float32 of float32
-    | Float64 of double
-    | StringIdx of int32
+    | NoOperand
+    | Int32Operand of int32
+    | Int64Operand of int64
+    | Float32Operand of float32
+    | Float64Operand of double
+    | StringOperand of int32
     | SwitchTarget of SwitchTarget
-    | VarIdx of int32
+    | VarOperand of int32
     | BranchTarget of int32
     | MetadataToken of int32
 
@@ -111,12 +111,12 @@ loadOpCodes()
 
 let readOperand (reader : BinaryReader, opCode : OpCode, startPos: int64) =
     match opCode.OperandType with
-    | OperandType.InlineI -> Int32(reader.ReadInt32())
-    | OperandType.ShortInlineI -> Int32(int (reader.ReadSByte()))
-    | OperandType.InlineI8 -> Int64(reader.ReadInt64())
-    | OperandType.InlineR -> Float64(reader.ReadDouble())
-    | OperandType.ShortInlineR -> Float32(reader.ReadSingle())
-    | OperandType.InlineString -> StringIdx(reader.ReadInt32())
+    | OperandType.InlineI -> Int32Operand(reader.ReadInt32())
+    | OperandType.ShortInlineI -> Int32Operand(int (reader.ReadSByte()))
+    | OperandType.InlineI8 -> Int64Operand(reader.ReadInt64())
+    | OperandType.InlineR -> Float64Operand(reader.ReadDouble())
+    | OperandType.ShortInlineR -> Float32Operand(reader.ReadSingle())
+    | OperandType.InlineString -> StringOperand(reader.ReadInt32())
     | OperandType.InlineBrTarget ->
         let offset = int64(reader.ReadInt32())
         BranchTarget(int(offset + GetPosition(reader) - startPos))
@@ -128,15 +128,15 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos: int64) =
         let shift = int(GetPosition(reader) - startPos)
         let result = branches |> Array.map (fun t -> t + shift)
         SwitchTarget(result)
-    | OperandType.InlineVar -> VarIdx(reader.ReadInt32())
-    | OperandType.ShortInlineVar -> VarIdx(int(reader.ReadSByte()))
+    | OperandType.InlineVar -> VarOperand(reader.ReadInt32())
+    | OperandType.ShortInlineVar -> VarOperand(int(reader.ReadSByte()))
     // metadata tokens
     | OperandType.InlineField -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineMethod -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineSig -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineTok -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineType -> MetadataToken(reader.ReadInt32())
-    | OperandType.InlineNone -> None
+    | OperandType.InlineNone -> NoOperand
     | _ -> invalidOp "not implemented"
 
 let readOpCode (reader : BinaryReader) =

@@ -10,10 +10,10 @@
     <Compile Include="Enums.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="PEImage.fs" />
+    <Compile Include="MethodBody.fs" />
     <Compile Include="Meta.fs" />
     <Compile Include="Schema.fs" />
     <Compile Include="MetaReader.fs" />
-    <Compile Include="MethodBody.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
