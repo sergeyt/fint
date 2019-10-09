@@ -68,23 +68,15 @@ let MetaReader(reader : BinaryReader) =
 
     // read table row counts and calculate table size
     let readRowCount i =
-        let readOne i =
-            let rowCount = reader.ReadInt32()
-            let id: TableId = enum i
-            {|
-                id = id;
-                rowCount = rowCount;
-                isSorted = ((sortedTables >>> i) &&& 1UL) <> 0UL;
-            |}
         // if bit is set table is presented, otherwise it is empty
         if (((validTables >>> i) &&& 1UL) = 0UL) then None
-        else Some (readOne i)
+        else Some (reader.ReadInt32())
 
     let rowCounts = [| 0 .. 63 |] |> Array.map readRowCount
     let rowCount id =
         match rowCounts.[int id] with
             | None -> 0
-            | Some t -> t.rowCount
+            | Some t -> t
     let sizeOfIndex n = if n >= 0x10000 then 4 else 2
     let mutable codedIndexSizes = new Dictionary<CodedIndexId, int>()
     let codedIndexSize i =
@@ -105,7 +97,8 @@ let MetaReader(reader : BinaryReader) =
 
     let mutable tablePos = GetPosition(reader)
     let makeTable i =
-        let createTable id rowCount isSorted =
+        let createTable rowCount =
+            let id: TableId = enum i
             let offset = tablePos
             let cols = Schema.TableColumns id |> Array.map (fun c -> {
                 name = c.name;
@@ -120,7 +113,7 @@ let MetaReader(reader : BinaryReader) =
                 rowCount = rowCount;
                 rowSize = rowSize;
                 size = tableSize;
-                isSorted = isSorted;
+                isSorted = ((sortedTables >>> i) &&& 1UL) <> 0UL;
                 columns = cols;
             }
             tablePos <- tablePos + int64 tableSize
@@ -128,7 +121,7 @@ let MetaReader(reader : BinaryReader) =
 
         match rowCounts.[i] with
             | None -> None
-            | Some t -> Some (createTable t.id t.rowCount t.isSorted)
+            | Some t -> Some (createTable t)
 
     let tables = [ 0 .. 63 ] |> List.map makeTable
 
