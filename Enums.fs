@@ -6,7 +6,10 @@ type TargetArchitecture =
     | I386 = 0x014c
     | AMD64 = 0x8664
     | IA64 = 0x0200
+    | ARM = 0x01c0
     | ARMv7 = 0x01c4
+    | ARM64 = 0xaa64
+    | AC020 = 0xc020
 
 type ModuleKind =
     | Dll = 0
