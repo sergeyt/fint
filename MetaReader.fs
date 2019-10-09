@@ -227,7 +227,7 @@ let MetaReader(reader : BinaryReader) =
                 | StringCell t -> t() :> obj
                 | GuidCell t -> t() :> obj
                 | BlobCell t -> sprintf "BLOB[%d]" (t().Length) :> obj
-                | TableIndexCell t -> t :> obj
+                | TableIndexCell t -> sprintf "%A(%d)" t.table t.index :> obj
         let dumpTable table =
             let dumpRow idx =
                 seekRow table idx
