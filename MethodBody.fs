@@ -72,44 +72,26 @@ let tryGetDefault (d : IDictionary<'k, 'v>) (key : 'k) (defaultValue : 'v) =
     if d.TryGetValue(key, &value) then value
     else defaultValue
 
-let mutable shortOpCodes : OpCode array = Array.zeroCreate (256)
-let mutable longOpCodes : OpCode array = Array.zeroCreate (256)
+let opCodes =
+    lazy
+        (typeof<OpCodes>
+             .GetFields(BindingFlags.Public ||| BindingFlags.Static
+                        ||| BindingFlags.GetField)
+         |> Array.map (fun f -> (f.GetValue(null) :?> OpCode)))
 
-let loadOpCodes() =
-    let bf =
-        BindingFlags.Public ||| BindingFlags.Static ||| BindingFlags.GetField
-    let fields = typeof<OpCodes>.GetFields(bf)
-
-    let opCodes : OpCode array =
-        fields
+let opArray size =
+    let map =
+        opCodes.Value
         |> Seq.ofArray
-        |> Seq.map (fun f -> (downcast (f.GetValue(null)) : OpCode))
-        |> Seq.toArray
-
-    let shortMap =
-        opCodes
-        |> Seq.ofArray
-        |> Seq.filter (fun t -> t.Size = 1)
+        |> Seq.filter (fun t -> t.Size = size)
         |> Seq.map (fun t -> (int t.Value, t))
         |> dict
+    [| 0..255 |] |> Array.map (fun i -> tryGetDefault map i OpCodes.Nop)
 
-    let longMap =
-        opCodes
-        |> Seq.ofArray
-        |> Seq.filter (fun t -> t.Size <> 1)
-        |> Seq.map (fun t -> (int t.Value, t))
-        |> dict
+let shortOpCodes = lazy (opArray 1)
+let longOpCodes = lazy (opArray 2)
 
-    shortOpCodes <- [ 0..255 ]
-                    |> List.map (fun i -> tryGetDefault shortMap i OpCodes.Nop)
-                    |> List.toArray
-    longOpCodes <- [ 0..255 ]
-                   |> List.map (fun i -> tryGetDefault longMap i OpCodes.Nop)
-                   |> List.toArray
-
-loadOpCodes()
-
-let readOperand (reader : BinaryReader, opCode : OpCode, startPos: int64) =
+let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
     match opCode.OperandType with
     | OperandType.InlineI -> Int32Operand(reader.ReadInt32())
     | OperandType.ShortInlineI -> Int32Operand(int (reader.ReadSByte()))
@@ -118,18 +100,20 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos: int64) =
     | OperandType.ShortInlineR -> Float32Operand(reader.ReadSingle())
     | OperandType.InlineString -> StringOperand(reader.ReadInt32())
     | OperandType.InlineBrTarget ->
-        let offset = int64(reader.ReadInt32())
-        BranchTarget(int(offset + GetPosition(reader) - startPos))
+        let offset = int64 (reader.ReadInt32())
+        BranchTarget(int (offset + GetPosition(reader) - startPos))
     | OperandType.ShortInlineBrTarget ->
-        let offset = int64(reader.ReadSByte())
-        BranchTarget(int(offset + GetPosition(reader) - startPos))
+        let offset = int64 (reader.ReadSByte())
+        BranchTarget(int (offset + GetPosition(reader) - startPos))
     | OperandType.InlineSwitch ->
-        let branches = [| 1 .. reader.ReadInt32() |] |> Array.map (fun _ -> reader.ReadInt32())
-        let shift = int(GetPosition(reader) - startPos)
+        let branches =
+            [| 1..reader.ReadInt32() |]
+            |> Array.map (fun _ -> reader.ReadInt32())
+        let shift = int (GetPosition(reader) - startPos)
         let result = branches |> Array.map (fun t -> t + shift)
         SwitchTarget(result)
     | OperandType.InlineVar -> VarOperand(reader.ReadInt32())
-    | OperandType.ShortInlineVar -> VarOperand(int(reader.ReadSByte()))
+    | OperandType.ShortInlineVar -> VarOperand(int (reader.ReadSByte()))
     // metadata tokens
     | OperandType.InlineField -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineMethod -> MetadataToken(reader.ReadInt32())
@@ -142,10 +126,10 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos: int64) =
 let readOpCode (reader : BinaryReader) =
     let i = int (reader.ReadByte())
     match i with
-    | 0xfe -> shortOpCodes.[i]
-    | _ -> longOpCodes.[int (reader.ReadByte())]
+    | 0xfe -> longOpCodes.Value.[int (reader.ReadByte())]
+    | _ -> shortOpCodes.Value.[i]
 
-let readInstruction (reader : BinaryReader, startPos: int64) =
+let readInstruction (reader : BinaryReader, startPos : int64) =
     let opCode = readOpCode (reader)
 
     let result : Instruction =
@@ -156,13 +140,14 @@ let readInstruction (reader : BinaryReader, startPos: int64) =
 
 let readInstructions (reader : BinaryReader, codeSize : int) =
     let startPos = GetPosition(reader)
+
     let code =
         seq {
             let mutable offset = 0
             while offset < codeSize do
                 let pos = GetPosition(reader)
-                let i = readInstruction(reader, startPos)
-                let size = int(GetPosition(reader) - pos)
+                let i = readInstruction (reader, startPos)
+                let size = int (GetPosition(reader) - pos)
                 offset <- offset + size
                 yield i
         }
