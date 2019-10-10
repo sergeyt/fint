@@ -126,22 +126,9 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
 
 let readOpCode (reader : BinaryReader) =
     let i = int (reader.ReadByte())
-    let checkOp (op: OpCode) i size =
-        let nopValue = OpCodes.Nop.Value
-        if op.Value = nopValue && i <> int nopValue
-        then invalidOp (sprintf "unknown %s opcode %d" size i)
-        ()
-    let shortOp i =
-        let op = shortOpCodes.Value.[i]
-        checkOp op i "short"
-        op
-    let longOp i =
-        let op = longOpCodes.Value.[i]
-        checkOp op i "long"
-        op
     match i with
-    | 0xfe -> longOp (int (reader.ReadByte()))
-    | _ -> shortOp i
+    | 0xfe -> longOpCodes.Value.[int (reader.ReadByte())]
+    | _ -> shortOpCodes.Value.[i]
 
 let readInstruction (reader : BinaryReader, startPos : int64) =
     let opCode = readOpCode (reader)
