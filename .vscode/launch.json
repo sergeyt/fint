@@ -10,7 +10,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/bin/Debug/fint.dll",
-      "args": ["test/hello/hello.dll"],
+      "args": ["test/sample1.dll"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole"
     },
@@ -20,7 +20,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/bin/Debug/fint.dll",
-      "args": ["test/hello/hello.dll"],
+      "args": ["test/sample1.dll"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole"
     }
