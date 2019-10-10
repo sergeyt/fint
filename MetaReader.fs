@@ -199,18 +199,18 @@ let MetaReader(reader : BinaryReader) =
             | StringCell t -> t()
             | _ -> invalidOp "expected string cell"
 
+    let noneFn() = None
+    // TODO cache method bodies
+    let readBodyAt rva = readMethodBody(moveToRVA(rva))
+
     let readMethod idx =
         let row = readRow TableId.MethodDef idx
         let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
         let name = cellStr(row.[Schema.MethodDef.Name.index])
         let bodyReader(rva: uint32) =
-            let result() =
-                try
-                    if rva = 0u then None
-                    else Some (readMethodBody(moveToRVA(rva)))
-                with
-                | _ -> invalidOp (sprintf "cant parse method %s[%d]" name idx)
-            result
+            match rva with
+            | 0u -> noneFn
+            | t -> (fun () -> Some (readBodyAt t))
         let method: MethodDef = {
             rva=rva;
             name=name;
