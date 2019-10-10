@@ -4,4 +4,4 @@ set -e
 
 ./build.sh
 
-dotnet run test/hello/hello.dll
+dotnet run test/sample1.dll

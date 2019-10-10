@@ -10,13 +10,11 @@ open Fint.IO
 open Fint.MethodBody
 
 let tryGet (d : IDictionary<'k, 'v>) (key : 'k) (init: unit -> 'v) =
-    let setup =
-        let v = init()
-        d.[key] <- v
-        v
-    let mutable value = Unchecked.defaultof<'v>
-    if d.TryGetValue(key, &value) then value
-    else setup
+    match d.TryGetValue key with
+        | true, v -> v
+        | false, _ -> let v = init()
+                      d.Add(key, v)
+                      v
 
 let MetaReader(reader : BinaryReader) =
     let image = ReadExecutableHeaders(reader)
@@ -126,11 +124,18 @@ let MetaReader(reader : BinaryReader) =
 
     let tables = [ 0 .. 63 ] |> List.map makeTable
 
-    let readCell (col: ComputedColumn) =
-        let readStr i =
-            Move(reader, stringStream.Value.offset + int64 i)
-            ReadUTF8(reader, -1)
+    let readString i =
+        Move(reader, stringStream.Value.offset + int64 i)
+        ReadUTF8(reader, -1)
 
+    let readUserString i =
+        Move(reader, usStream.Value.offset + int64 i)
+        let mutable len = ReadPackedInt(reader)
+        let buf = ReadBytes(reader, len)
+        len <- if (int buf.[len - 1] = 0 || int buf.[len - 1] = 1) then len - 1 else len
+        System.Text.Encoding.Unicode.GetString(buf, 0, len)
+
+    let readCell (col: ComputedColumn) =
         let readGuid i =
             let guids = lazy (
                 let heap = guidStream.Value
@@ -159,7 +164,7 @@ let MetaReader(reader : BinaryReader) =
         match col.value with
             | Int16 _ -> Int16Cell(int16 value)
             | Int32 _ -> Int32Cell(int32 value)
-            | StringIndex _ -> StringCell(idxReader value readStr)
+            | StringIndex _ -> StringCell(idxReader value readString)
             | GuidIndex _ -> GuidCell(idxReader value readGuid)
             | BlobIndex _ -> BlobCell(idxReader value readBlob)
             | TableIndex t -> TableIndexCell({table=t.table;index=int value;})
@@ -183,46 +188,6 @@ let MetaReader(reader : BinaryReader) =
         let cells = table.columns |> Array.map readCell
         cells
 
-    let moveToRVA (rva: uint32) =
-        let offset = ResolveVirtualAddress(image.Sections, rva)
-        Move(reader, offset)
-        reader
-
-    let cellInt32 cell =
-        match cell with
-            | Int32Cell t -> t
-            | Int16Cell t -> int t
-            | _ -> invalidOp "expected int32 or int16 cell"
-
-    let cellStr cell =
-        match cell with
-            | StringCell t -> t()
-            | _ -> invalidOp "expected string cell"
-
-    let noneFn() = None
-    // TODO cache method bodies
-    let readBodyAt rva = readMethodBody(moveToRVA(rva))
-
-    let readMethod idx =
-        let row = readRow TableId.MethodDef idx
-        let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
-        let name = cellStr(row.[Schema.MethodDef.Name.index])
-        let bodyReader(rva: uint32) =
-            match rva with
-            | 0u -> noneFn
-            | t -> (fun () -> Some (readBodyAt t))
-        let method: MethodDef = {
-            rva=rva;
-            name=name;
-            body=bodyReader(rva);
-        }
-        method
-
-    let readEntryPoint() =
-        let p = decodeTableIndex(image.EntryPointToken)
-        if p.table = TableId.MethodDef then Some (readMethod p.index)
-        else None
-
     let dump() =
         let dumpCell col =
             let cell = readCell col
@@ -242,6 +207,104 @@ let MetaReader(reader : BinaryReader) =
             {|table=table.id; tableId=int table.id; rows=rows|}
         tables |> List.filter (fun t -> t.IsSome) |> List.map (fun t -> dumpTable t.Value)
 
+    let moveToRVA (rva: uint32) =
+        let offset = ResolveVirtualAddress(image.Sections, rva)
+        Move(reader, offset)
+        reader
+
+    let cellInt32 cell =
+        match cell with
+            | Int32Cell t -> t
+            | Int16Cell t -> int t
+            | _ -> invalidOp "expect int32 or int16 cell"
+
+    let cellStr cell =
+        match cell with
+            | StringCell t -> t()
+            | _ -> invalidOp "expect string cell"
+
+    let cellBlob cell =
+        match cell with
+            | BlobCell t -> t()
+            | _ -> invalidOp "expect blob cell"
+
+    let cellIdx cell =
+        match cell with
+            | TableIndexCell t -> t
+            | _ -> invalidOp "expect index cell"
+
+    let noneFn() = None
+    // TODO cache method bodies
+    let readBodyAt rva = readMethodBody(moveToRVA(rva))
+
+    let makeMethod(row: Cell array) =
+        let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
+        let name = cellStr(row.[Schema.MethodDef.Name.index])
+        let bodyReader(rva: uint32) =
+            match rva with
+            | 0u -> noneFn
+            | t -> (fun () -> Some (readBodyAt t))
+        let method: MethodDef = {
+            rva=rva;
+            name=name;
+            body=bodyReader(rva);
+        }
+        method
+
+    let readMethod idx =
+        let row = readRow TableId.MethodDef idx
+        makeMethod row
+
+    let readEntryPoint() =
+        let p = decodeTableIndex(image.EntryPointToken)
+        if p.table = TableId.MethodDef then Some (readMethod (p.index - 1))
+        else None
+
+    let resolveToken (token: uint32) =
+        let msb = int(token >>> 24)
+        let index = int(token &&& 0xffffffu)
+        match msb with
+        | 0x70 -> StringToken(readUserString index)
+        | _ -> let tableId: TableId = enum msb
+               let cells = readRow tableId (index - 1)
+               RowToken({table=tableId; cells=cells})
+
+    let makeTypeDef (row: Cell array) =
+        let ns = cellStr(row.[Schema.TypeDef.TypeNamespace.index])
+        let name = cellStr(row.[Schema.TypeDef.TypeName.index])
+        let result: TypeDef = {
+            ns=ns;
+            name=name;
+        }
+        result
+
+    let makeTypeRef (row: Cell array) =
+        let ns = cellStr(row.[Schema.TypeRef.TypeNamespace.index])
+        let name = cellStr(row.[Schema.TypeRef.TypeName.index])
+        let result: TypeRef = {
+            ns=ns;
+            name=name;
+        }
+        result
+
+    let resolveMemberRefParent (row: Cell array) =
+        let p = cellIdx(row.[Schema.MemberRef.Class.index])
+        let row = readRow p.table (p.index - 1)
+        match p.table with
+        | TableId.TypeDef -> TypeDefParent(makeTypeDef row)
+        | TableId.TypeRef -> TypeRefParent(makeTypeRef row)
+        | _ -> failwith "expect TypeDef or TypeRef"
+
+    let makeMemberRef (row: Cell array) =
+        let parent = resolveMemberRefParent(row)
+        // TODO resolve signature
+        let name = cellStr(row.[Schema.MemberRef.Name.index])
+        let result: MemberRef = {
+            parent=parent;
+            name=name;
+        }
+        result
+
     {|
         image = image;
         rowCount = rowCount;
@@ -249,5 +312,9 @@ let MetaReader(reader : BinaryReader) =
         readRow = readRow;
         readMethod = readMethod;
         readEntryPoint = readEntryPoint;
+        readString = readString;
+        resolveToken = resolveToken;
+        makeMethod = makeMethod;
+        makeMemberRef = makeMemberRef;
         dump = dump
     |}

@@ -140,7 +140,7 @@ type ColumnType =
   | TableIndex of TableIndex
   | CodedIndex of CodedIndex
 
-type CellType =
+type Cell =
   | Int16Cell of int16
   | Int32Cell of int32
   | StringCell of (unit -> string)
@@ -170,8 +170,36 @@ type Table = {
   columns: ComputedColumn array;
 }
 
+type Row = {
+  table: TableId;
+  cells: Cell array;
+}
+
+type TokenValue =
+  | StringToken of string
+  | RowToken of Row
+
 type MethodDef = {
   rva: uint32;
   name: string;
   body: unit -> MethodBody option;
+};
+
+type TypeDef = {
+  ns: string;
+  name: string;
+};
+
+type TypeRef = {
+  ns: string;
+  name: string;
+};
+
+type MemberRefParent =
+  | TypeDefParent of TypeDef
+  | TypeRefParent of TypeRef
+
+type MemberRef = {
+  parent: MemberRefParent;
+  name: string;
 };

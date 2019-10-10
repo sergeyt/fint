@@ -16,7 +16,6 @@ type InstructionOperand =
     | Int64Operand of int64
     | Float32Operand of float32
     | Float64Operand of double
-    | StringOperand of int32
     | SwitchTarget of SwitchTarget
     | VarOperand of int32
     | BranchTarget of int32
@@ -69,9 +68,9 @@ type MethodBody =
       sehBlocks : SEHBlock array }
 
 let tryGetDefault (d : IDictionary<'k, 'v>) (key : 'k) (defaultValue : 'v) =
-    let mutable value = defaultValue
-    if d.TryGetValue(key, &value) then value
-    else defaultValue
+    match d.TryGetValue key with
+    | true, v -> v
+    | false, _ -> defaultValue
 
 let opCodes =
     lazy
@@ -99,7 +98,7 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
     | OperandType.InlineI8 -> Int64Operand(reader.ReadInt64())
     | OperandType.InlineR -> Float64Operand(reader.ReadDouble())
     | OperandType.ShortInlineR -> Float32Operand(reader.ReadSingle())
-    | OperandType.InlineString -> StringOperand(reader.ReadInt32())
+    | OperandType.InlineString -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineBrTarget ->
         let offset = int64 (reader.ReadInt32())
         BranchTarget(int (offset + GetPosition(reader) - startPos))

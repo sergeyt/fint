@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Collections.fs" />
     <Compile Include="Enums.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="PEImage.fs" />
@@ -14,6 +15,7 @@
     <Compile Include="Meta.fs" />
     <Compile Include="Schema.fs" />
     <Compile Include="MetaReader.fs" />
+    <Compile Include="Interpreter.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

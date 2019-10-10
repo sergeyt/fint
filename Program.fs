@@ -3,6 +3,7 @@
 open System.IO
 open Fint.Enums
 open Fint.MetaReader
+open Fint.Interpreter
 
 let checkCorlib() =
     let path = (typeof<string>).Assembly.Location
@@ -21,8 +22,9 @@ let checkCorlib() =
 let main argv =
     use input = File.OpenRead(argv.[0])
     let reader = new BinaryReader(input)
-    let meta = MetaReader(reader)
-    printfn "%A" (meta.dump())
-    let entry = meta.readEntryPoint()
-    printfn "%A" (entry.Value.body())
+    run reader
+    // let meta = MetaReader(reader)
+    // printfn "%A" (meta.dump())
+    // let entry = meta.readEntryPoint()
+    // printfn "%A" (entry.Value.body())
     0 // return an integer exit code
