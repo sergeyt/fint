@@ -191,7 +191,8 @@ let MetaReader(reader : BinaryReader) =
     let cellInt32 cell =
         match cell with
             | Int32Cell t -> t
-            | _ -> invalidOp "expected int32 cell"
+            | Int16Cell t -> int t
+            | _ -> invalidOp "expected int32 or int16 cell"
 
     let cellStr cell =
         match cell with
@@ -199,16 +200,20 @@ let MetaReader(reader : BinaryReader) =
             | _ -> invalidOp "expected string cell"
 
     let readMethod idx =
-        let bodyReader(rva: uint32) =
-            let result() =
-                if rva = 0u then None
-                else Some (readMethodBody(moveToRVA(rva)))
-            result
         let row = readRow TableId.MethodDef idx
         let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
+        let name = cellStr(row.[Schema.MethodDef.Name.index])
+        let bodyReader(rva: uint32) =
+            let result() =
+                try
+                    if rva = 0u then None
+                    else Some (readMethodBody(moveToRVA(rva)))
+                with
+                | _ -> invalidOp (sprintf "cant parse method %s[%d]" name idx)
+            result
         let method: MethodDef = {
             rva=rva;
-            name=cellStr(row.[Schema.MethodDef.Name.index]);
+            name=name;
             body=bodyReader(rva);
         }
         method
@@ -239,6 +244,7 @@ let MetaReader(reader : BinaryReader) =
 
     {|
         image = image;
+        rowCount = rowCount;
         tables = tables;
         readRow = readRow;
         readMethod = readMethod;

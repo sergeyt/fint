@@ -64,6 +64,7 @@ type SEHBlock =
 
 type MethodBody =
     { maxStackSize : int
+      localSig: int
       code : Instruction array
       sehBlocks : SEHBlock array }
 
@@ -84,7 +85,7 @@ let opArray size =
         opCodes.Value
         |> Seq.ofArray
         |> Seq.filter (fun t -> t.Size = size)
-        |> Seq.map (fun t -> (int t.Value, t))
+        |> Seq.map (fun t -> (int t.Value &&& 0xff, t))
         |> dict
     [| 0..255 |] |> Array.map (fun i -> tryGetDefault map i OpCodes.Nop)
 
@@ -125,9 +126,22 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
 
 let readOpCode (reader : BinaryReader) =
     let i = int (reader.ReadByte())
+    let checkOp (op: OpCode) i size =
+        let nopValue = OpCodes.Nop.Value
+        if op.Value = nopValue && i <> int nopValue
+        then invalidOp (sprintf "unknown %s opcode %d" size i)
+        ()
+    let shortOp i =
+        let op = shortOpCodes.Value.[i]
+        checkOp op i "short"
+        op
+    let longOp i =
+        let op = longOpCodes.Value.[i]
+        checkOp op i "long"
+        op
     match i with
-    | 0xfe -> longOpCodes.Value.[int (reader.ReadByte())]
-    | _ -> shortOpCodes.Value.[i]
+    | 0xfe -> longOp (int (reader.ReadByte()))
+    | _ -> shortOp i
 
 let readInstruction (reader : BinaryReader, startPos : int64) =
     let opCode = readOpCode (reader)
@@ -223,13 +237,12 @@ let readMethodBody (reader : BinaryReader) =
 
     let readFatMethod() =
         let msb = uint32 (reader.ReadByte())
-        let dwordMultipleSize = (msb &&& uint32 0xf0) >>> 4
+        let dwordMultipleSize = (msb &&& 0xf0u) >>> 4
         assert (dwordMultipleSize = uint32 3) // the fat header is 3 dwords
         let maxStackSize = int (reader.ReadUInt16())
         let codeSize = reader.ReadInt32()
         let localSig = reader.ReadInt32()
-        let flags2 : MethodBodyFlags =
-            enum (int ((msb &&& uint32 0x0f) <<< 8 ||| lsb))
+        let flags2 : MethodBodyFlags = enum (int ((msb &&& 0x0fu) <<< 8 ||| lsb))
         let code = readInstructions (reader, codeSize)
 
         let sehBlocks =
@@ -239,6 +252,7 @@ let readMethodBody (reader : BinaryReader) =
 
         let result : MethodBody =
             { maxStackSize = maxStackSize
+              localSig = localSig
               code = code
               sehBlocks = sehBlocks }
 
@@ -250,6 +264,7 @@ let readMethodBody (reader : BinaryReader) =
 
         let result : MethodBody =
             { maxStackSize = 8
+              localSig = 0
               code = code
               sehBlocks = [||] }
         result
