@@ -8,6 +8,7 @@ open Fint.Meta
 open Fint.PEImage
 open Fint.IO
 open Fint.MethodBody
+open Fint.Utils
 
 let tryGet (d : IDictionary<'k, 'v>) (key : 'k) (init: unit -> 'v) =
     match d.TryGetValue key with
@@ -234,8 +235,8 @@ let MetaReader(reader : BinaryReader) =
             | _ -> invalidOp "expect index cell"
 
     let noneFn() = None
-    // TODO cache method bodies
-    let readBodyAt rva = readMethodBody(moveToRVA(rva))
+    let readBodyImpl rva = readMethodBody(moveToRVA(rva))
+    let readBodyAt = memoize readBodyImpl
 
     let makeMethod(row: Cell array) =
         let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Include="Collections.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Enums.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="PEImage.fs" />
