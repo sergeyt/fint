@@ -22,8 +22,7 @@ type InstructionOperand =
     | MetadataToken of int32
 
 type Instruction =
-    { opCode : OpCode
-      code : InstructionCode
+    { code : InstructionCode
       operand : InstructionOperand }
 
 // IL method body flags
@@ -131,10 +130,8 @@ let readOpCode (reader : BinaryReader) =
 
 let readInstruction (reader : BinaryReader, startPos : int64) =
     let opCode = readOpCode (reader)
-
     let result : Instruction =
-        { opCode = opCode
-          code = enum (int opCode.Value)
+        { code = enum (int opCode.Value)
           operand = readOperand (reader, opCode, startPos) }
     result
 
