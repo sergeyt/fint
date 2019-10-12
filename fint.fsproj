@@ -13,6 +13,8 @@
     <Compile Include="IO.fs" />
     <Compile Include="PEImage.fs" />
     <Compile Include="MethodBody.fs" />
+    <Compile Include="CodedIndex.fs" />
+    <Compile Include="Signature.fs" />
     <Compile Include="Meta.fs" />
     <Compile Include="Schema.fs" />
     <Compile Include="MetaReader.fs" />

@@ -9,6 +9,8 @@ open Fint.PEImage
 open Fint.IO
 open Fint.MethodBody
 open Fint.Utils
+open Fint.CodedIndex
+open Fint.Signature
 
 let tryGet (d : IDictionary<'k, 'v>) (key : 'k) (init: unit -> 'v) =
     match d.TryGetValue key with
@@ -238,6 +240,30 @@ let MetaReader(reader : BinaryReader) =
     let readBodyImpl rva = readMethodBody(moveToRVA(rva))
     let readBodyAt = memoize readBodyImpl
 
+    let resolveLocalVarsImpl (token: uint32) =
+        let readVars() =
+            let t = decodeTableIndex token
+            let row = readRow t.table (t.index - 1)
+            let blob = cellBlob(row.[Schema.StandAloneSig.Signature.index])
+            let reader = MakeReader(blob)
+            let prolog = ReadPackedInt(reader)
+            if prolog <> int SignatureKind.LocalVars
+            then failwith "Invalid local variable signature."
+            let count = ReadPackedInt(reader)
+            let makeVar i =
+                let v: LocalVar = {
+                    Index=i;
+                    Type=decodeTypeSignature(reader);
+                    Name=sprintf "v%d" i;
+                }
+                v
+            let vars = [|0..count-1|] |> Array.map makeVar
+            vars
+        match token with
+        | 0u -> [||]
+        | _ -> readVars()
+    let resolveLocalVars = memoize resolveLocalVarsImpl
+
     let makeMethod(row: Cell array) =
         let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
         let name = cellStr(row.[Schema.MethodDef.Name.index])
@@ -245,10 +271,15 @@ let MetaReader(reader : BinaryReader) =
             match rva with
             | 0u -> noneFn
             | t -> (fun () -> Some (readBodyAt t))
+        let body = bodyReader(rva)
         let method: MethodDef = {
             rva=rva;
             name=name;
-            body=bodyReader(rva);
+            body=body;
+            localVars=(fun () ->
+                match body() with
+                | None -> [||]
+                | Some body -> resolveLocalVars body.localSig)
         }
         method
 

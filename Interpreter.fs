@@ -6,11 +6,14 @@ open Fint.Enums
 open Fint.MethodBody
 open Fint.Meta
 open Fint.MetaReader
+open Fint.Signature
 
 type CallContext =
     { method: MethodDef
       ip: int
       stack: ImmutableStack<obj>
+      vars: obj array
+      args: obj array
       result: obj
       callStack: ImmutableStack<CallContext> }
 
@@ -25,11 +28,39 @@ let run reader =
 
     let mutable callStack = Empty
 
-    let pushCall method =
+    let allocPrimitive t =
+        match t with
+        | ElementType.Boolean -> false :> obj
+        | ElementType.Char -> char 0 :> obj
+        | ElementType.Int8 -> sbyte 0 :> obj
+        | ElementType.UInt8 -> byte 0 :> obj
+        | ElementType.Int16 -> int16 0 :> obj
+        | ElementType.UInt16 -> uint16 0 :> obj
+        | ElementType.Int32 -> int32 0 :> obj
+        | ElementType.UInt32 -> uint32 0 :> obj
+        | ElementType.Int64 -> int64 0 :> obj
+        | ElementType.UInt64 -> uint64 0 :> obj
+        | ElementType.Single -> float 0 :> obj
+        | ElementType.Double -> double 0 :> obj
+        | ElementType.String -> null
+        | ElementType.Object -> null
+        | _ -> failwith "not supported"
+
+    let allocType t =
+        match t with
+        | PrimitiveTypeSig t -> allocPrimitive t
+        | _ -> failwith "not implemented"
+
+    let allocVars vars = vars |> Array.map (fun v -> allocType v.Type)
+
+    let pushCall method args =
+        let vars = allocVars (method.localVars())
         let ctx: CallContext =
             { method = method
               ip = 0
               stack = Empty
+              vars = vars
+              args = args
               result = null
               callStack = callStack }
         callStack <- callStack.Push ctx
@@ -37,7 +68,6 @@ let run reader =
 
     let next ctx = { ctx with ip = ctx.ip + 1 }
     let push ctx value = next { ctx with stack = ctx.stack.Push value }
-
     let pop ctx =
         let v = ctx.stack.Pop()
         (v, next { ctx with stack = ctx.stack.Top() })
@@ -47,6 +77,16 @@ let run reader =
         | false ->
             let (v, c) = pop ctx
             next { c with result = v }
+    let ldloc ctx i = push ctx ctx.vars.[i]
+    let ldarg ctx i = push ctx ctx.args.[i]
+    let stloc ctx i =
+        let (v, c) = pop ctx
+        c.vars.[i] <- v
+        c
+    let starg ctx i =
+        let (v, c) = pop ctx
+        c.args.[i] <- v
+        c
 
     let resolveString token =
         let t = meta.resolveToken token
@@ -145,11 +185,32 @@ let run reader =
         | InstructionCode.Ldc_R4 -> push ctx (dataFloat32 i.operand)
         | InstructionCode.Ldc_R8 -> push ctx (dataFloat64 i.operand)
         | InstructionCode.Ldstr -> push ctx (dataString i.operand)
+        // load instructions
+        | InstructionCode.Ldloc_0 -> ldloc ctx 0
+        | InstructionCode.Ldloc_1 -> ldloc ctx 1
+        | InstructionCode.Ldloc_2 -> ldloc ctx 2
+        | InstructionCode.Ldloc_3 -> ldloc ctx 3
+        | InstructionCode.Ldloc_S -> ldloc ctx (dataInt32 i.operand)
+        | InstructionCode.Ldarg_0 -> ldarg ctx 0
+        | InstructionCode.Ldarg_1 -> ldarg ctx 1
+        | InstructionCode.Ldarg_2 -> ldarg ctx 2
+        | InstructionCode.Ldarg_3 -> ldarg ctx 3
+        | InstructionCode.Ldarg_S
+        | InstructionCode.Ldarg -> ldarg ctx (dataInt32 i.operand)
+        // store instructions
+        | InstructionCode.Stloc_0 -> stloc ctx 0
+        | InstructionCode.Stloc_1 -> stloc ctx 1
+        | InstructionCode.Stloc_2 -> stloc ctx 2
+        | InstructionCode.Stloc_3 -> stloc ctx 3
+        | InstructionCode.Stloc_S
+        | InstructionCode.Stloc -> stloc ctx (dataInt32 i.operand)
+        | InstructionCode.Starg_S
+        | InstructionCode.Starg -> starg ctx (dataInt32 i.operand)
         // stack operations
         | InstructionCode.Dup -> next { ctx with stack = ctx.stack.Push(ctx.stack.Top()) }
         | InstructionCode.Pop -> next { ctx with stack = ctx.stack.Top() }
         | InstructionCode.Ret -> ret ctx
-        // call
+        // call instructions
         | InstructionCode.Call -> call ctx (dataToken i.operand)
         | _ -> failwith "not implemented"
 
@@ -160,7 +221,7 @@ let run reader =
             c <- op c
 
     let start main =
-        let ctx = pushCall main
+        let ctx = pushCall main [||]
         eval ctx
         0
 

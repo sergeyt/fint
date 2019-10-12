@@ -4,6 +4,7 @@ module Fint.Schema
 open System
 open Fint.Enums
 open Fint.Meta
+open Fint.CodedIndex
 
 let I32 = Int32(0)
 let I16 = Int16(int16 0)

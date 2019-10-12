@@ -3,5 +3,7 @@
 set -e
 
 ./build.sh
-
-dotnet run test/sample1.dll
+IN=$1
+SAMPLE=${IN:=sample1}
+./csc.sh ${SAMPLE}
+dotnet run test/${SAMPLE}.dll

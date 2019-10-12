@@ -4,6 +4,9 @@ open System
 open System.IO
 open System.Text
 
+let MakeReader(blob: byte array) =
+    BinaryReader(new MemoryStream(blob))
+
 let GetPosition(reader : BinaryReader) =
     reader.BaseStream.Position
 

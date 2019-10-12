@@ -63,7 +63,7 @@ type SEHBlock =
 
 type MethodBody =
     { maxStackSize : int
-      localSig: int
+      localSig: uint32
       code : Instruction array
       sehBlocks : SEHBlock array }
 
@@ -115,10 +115,10 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
     | OperandType.InlineVar -> VarOperand(reader.ReadInt32())
     | OperandType.ShortInlineVar -> VarOperand(int (reader.ReadSByte()))
     // metadata tokens
-    | OperandType.InlineField -> MetadataToken(reader.ReadInt32())
-    | OperandType.InlineMethod -> MetadataToken(reader.ReadInt32())
-    | OperandType.InlineSig -> MetadataToken(reader.ReadInt32())
-    | OperandType.InlineTok -> MetadataToken(reader.ReadInt32())
+    | OperandType.InlineField
+    | OperandType.InlineMethod
+    | OperandType.InlineSig
+    | OperandType.InlineTok
     | OperandType.InlineType -> MetadataToken(reader.ReadInt32())
     | OperandType.InlineNone -> NoOperand
     | _ -> invalidOp "not implemented"
@@ -227,7 +227,7 @@ let readMethodBody (reader : BinaryReader) =
         assert (dwordMultipleSize = uint32 3) // the fat header is 3 dwords
         let maxStackSize = int (reader.ReadUInt16())
         let codeSize = reader.ReadInt32()
-        let localSig = reader.ReadInt32()
+        let localSig = reader.ReadUInt32()
         let flags2 : MethodBodyFlags = enum (int ((msb &&& 0x0fu) <<< 8 ||| lsb))
         let code = readInstructions (reader, codeSize)
 
@@ -250,7 +250,7 @@ let readMethodBody (reader : BinaryReader) =
 
         let result : MethodBody =
             { maxStackSize = 8
-              localSig = 0
+              localSig = 0u
               code = code
               sehBlocks = [||] }
         result
