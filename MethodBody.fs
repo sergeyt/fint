@@ -22,7 +22,9 @@ type InstructionOperand =
     | MetadataToken of int32
 
 type Instruction =
-    { code : InstructionCode
+    { offset : int;
+      opCode : OpCode;
+      code : InstructionCode
       operand : InstructionOperand }
 
 // IL method body flags
@@ -129,26 +131,51 @@ let readOpCode (reader : BinaryReader) =
     | _ -> shortOpCodes.Value.[i]
 
 let readInstruction (reader : BinaryReader, startPos : int64) =
+    let offset = int(GetPosition(reader) - startPos)
     let opCode = readOpCode (reader)
     let result : Instruction =
-        { code = enum (int opCode.Value)
+        { offset = offset
+          opCode = opCode;
+          code = enum (int opCode.Value)
           operand = readOperand (reader, opCode, startPos) }
     result
 
+let isBranch (i: Instruction) =
+    i.code = InstructionCode.Switch
+    || i.opCode.FlowControl = FlowControl.Branch
+    || i.opCode.FlowControl = FlowControl.Cond_Branch
+
+let translateOffsets(code: Instruction array) =
+    let offsets = code |> Array.map (fun i -> i.offset)
+    let idx offset = Array.BinarySearch(offsets, offset)
+    let translateOperand v =
+        match v with
+        | SwitchTarget t -> SwitchTarget(t |> Array.map idx)
+        | BranchTarget t -> BranchTarget(idx t)
+        | _ -> invalidOp "expect branch operand"
+    let translate(i: Instruction) =
+        match isBranch(i) with
+        | true -> { i with operand = translateOperand i.operand }
+        | false -> i
+    code |> Array.map translate
+
 let readInstructions (reader : BinaryReader, codeSize : int) =
     let startPos = GetPosition(reader)
-
-    let code =
-        seq {
-            let mutable offset = 0
-            while offset < codeSize do
-                let pos = GetPosition(reader)
-                let i = readInstruction (reader, startPos)
-                let size = int (GetPosition(reader) - pos)
-                offset <- offset + size
-                yield i
-        }
-    code |> Seq.toArray
+    let mutable hasBranches = false
+    let code = seq {
+        let mutable offset = 0
+        while offset < codeSize do
+            let pos = GetPosition(reader)
+            let i = readInstruction (reader, startPos)
+            hasBranches <- hasBranches || isBranch i
+            let size = int (GetPosition(reader) - pos)
+            offset <- offset + size
+            yield i
+    }
+    let result = code |> Seq.toArray
+    match hasBranches with
+    | true -> translateOffsets(result)
+    | false -> result
 
 [<FlagsAttribute>]
 type SectionFlags =
@@ -187,8 +214,8 @@ let readSEHBlock (buf : byte array, fat : bool) =
 let readSEHBlocks (reader : BinaryReader) =
     let blocks =
         seq {
-            let FatSize = 24
-            let TinySize = 12
+            let fatSize = 24
+            let tinySize = 12
             let mutable next = true
             while next do
                 // Goto 4 byte boundary (each section has to start at 4 byte boundary)
@@ -201,9 +228,9 @@ let readSEHBlocks (reader : BinaryReader) =
                 let count() =
                     if int (sf &&& SectionFlags.OptILTable) <> 0 then (0, false)
                     elif int (sf &&& SectionFlags.FatFormat) = 0 then
-                        ((size &&& 0xff) / TinySize, false)
+                        ((size &&& 0xff) / tinySize, false)
                     elif int (sf &&& SectionFlags.EHTable) <> 0 then
-                        (size / FatSize, true)
+                        (size / fatSize, true)
                     else (0, false)
 
                 let (n, fat) = count()

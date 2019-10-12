@@ -178,7 +178,7 @@ let MetaReader(reader : BinaryReader) =
             | None -> invalidArg "tableId" (sprintf "table %A does not exist" tableId)
             | Some t -> t
 
-    let seekRow table idx =
+    let seekRow (table: Table) idx =
         let offset = table.offset + int64 (idx * table.rowSize)
         Move(reader, offset)
 
@@ -267,6 +267,9 @@ let MetaReader(reader : BinaryReader) =
     let makeMethod(row: Cell array) =
         let rva = uint32(cellInt32(row.[Schema.MethodDef.RVA.index]))
         let name = cellStr(row.[Schema.MethodDef.Name.index])
+        let flags: MethodAttributes = enum (cellInt32(row.[Schema.MethodDef.Flags.index]))
+        let sigBlog = cellBlob(row.[Schema.MethodDef.Signature.index])
+        let signature = decodeMethodSignature(MakeReader(sigBlog))
         let bodyReader(rva: uint32) =
             match rva with
             | 0u -> noneFn
@@ -275,6 +278,8 @@ let MetaReader(reader : BinaryReader) =
         let method: MethodDef = {
             rva=rva;
             name=name;
+            flags=flags;
+            signature=signature;
             body=body;
             localVars=(fun () ->
                 match body() with
@@ -329,11 +334,13 @@ let MetaReader(reader : BinaryReader) =
 
     let makeMemberRef (row: Cell array) =
         let parent = resolveMemberRefParent(row)
-        // TODO resolve signature
+        let sigBlob = cellBlob(row.[Schema.MemberRef.Signature.index])
+        let signature = decodeMethodSignature(MakeReader(sigBlob))
         let name = cellStr(row.[Schema.MemberRef.Name.index])
         let result: MemberRef = {
             parent=parent;
             name=name;
+            signature=signature;
         }
         result
 

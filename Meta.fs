@@ -58,9 +58,17 @@ type TokenValue =
 type MethodDef = {
   rva: uint32;
   name: string;
+  flags: MethodAttributes;
+  signature: MethodSignature;
   body: unit -> MethodBody option;
   localVars: unit -> LocalVar array;
 };
+
+let IsStaticMethod m = int (m.flags &&& MethodAttributes.Static) <> 0
+let IsVoidMethod m =
+  match m.signature.ReturnType with
+  | PrimitiveTypeSig t -> t = ElementType.Void
+  | _ -> false
 
 type TypeDef = {
   ns: string;
@@ -79,4 +87,5 @@ type MemberRefParent =
 type MemberRef = {
   parent: MemberRefParent;
   name: string;
+  signature: MethodSignature;
 };

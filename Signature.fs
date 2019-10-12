@@ -2,6 +2,7 @@ module Fint.Signature
 
 open System
 open System.IO
+open System.Reflection
 open Fint.IO
 open Fint.CodedIndex
 
@@ -106,6 +107,12 @@ type ArrayShape = {
     LoBounds: int array;
 }
 
+let ArraySzShape: ArrayShape = {
+    Rank = 0;
+    Sizes = [||];
+    LoBounds = [||];
+}
+
 type TypeSignature =
     | PrimitiveTypeSig of ElementType
     | RefTypeSig of ElementType * TypeSignature
@@ -117,6 +124,14 @@ type LocalVar = {
     Index: int;
     Type: TypeSignature;
     Name: string;
+}
+
+type MethodSignature = {
+    IsProperty: bool;
+    CallingConventions: CallingConventions;
+    GenericParamCount: int;
+    ReturnType: TypeSignature;
+    Params: TypeSignature array;
 }
 
 let rec decodeTypeSignature (reader: BinaryReader) =
@@ -149,4 +164,38 @@ let rec decodeTypeSignature (reader: BinaryReader) =
         | ElementType.ValueType
         | ElementType.Class
         | ElementType.CustomArgsEnum -> TypeIndexSig(e, decodeTypeDefOrRef(reader))
+        | ElementType.ArraySz -> ArrayTypeSig(decodeTypeSignature(reader), ArraySzShape)
         | _ -> failwith "not implemented"
+
+
+let decodeMethodSignature (reader: BinaryReader) =
+    let flags: SignatureFlags = enum (int(reader.ReadByte()))
+    let kind = flags &&& SignatureFlags.TYPEMASK
+    let isMethod = kind = SignatureFlags.PROPERTY || (kind >= SignatureFlags.DEFAULT && kind <= SignatureFlags.VARARG)
+    if not isMethod then failwith "bad method signature"
+    let callConv() =
+        match kind with
+        | SignatureFlags.VARARG -> CallingConventions.VarArgs
+        | _ -> 
+            let std = CallingConventions.Standard
+            let hasThis =
+                if (int (flags &&& SignatureFlags.HASTHIS) = 0) then std
+                else CallingConventions.HasThis
+            let explicitThis =
+                if (int (flags &&& SignatureFlags.EXPLICITTHIS) = 0) then std
+                else CallingConventions.ExplicitThis
+            std ||| hasThis ||| explicitThis
+    let genericParamCount = 
+        if int (flags &&& SignatureFlags.GENERIC) = 0 then 0
+        else ReadPackedInt(reader)
+    let paramCount = ReadPackedInt(reader)
+    let returnType = decodeTypeSignature(reader)
+    let paramTypes = [|1..paramCount|] |> Array.map (fun _ -> decodeTypeSignature(reader))
+    let result: MethodSignature = {
+        IsProperty=kind = SignatureFlags.PROPERTY;
+        CallingConventions=callConv();
+        GenericParamCount=genericParamCount;
+        ReturnType=returnType;
+        Params=paramTypes;
+    }
+    result

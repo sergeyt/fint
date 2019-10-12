@@ -32,6 +32,56 @@ type ModuleCharacteristics =
     | AppContainer = 0x1000
     | TerminalServerAware = 0x8000
 
+// Method metadata attributes
+[<FlagsAttribute>]
+type MethodAttributes =
+    // member access mask - Use this mask to retrieve accessibility information.
+    | MemberAccessMask = 0x0007
+    // Indicates that the member cannot be referenced.
+    | PrivateScope = 0x0000
+    // Indicates that the method is accessible only to the current class.  
+    | Private = 0x0001
+    // Indicates that the method is accessible to members of this type and its derived types that are in this assembly only.
+    | FamANDAssem = 0x0002
+    // Indicates that the method is accessible to any class of this assembly
+    | Assembly = 0x0003
+    // Indicates that the method is accessible only to members of this class and its derived classes.    
+    | Family = 0x0004
+    // Indicates that the method is accessible to derived classes anywhere, as well as to any class in the assembly.
+    | FamORAssem = 0x0005
+    // Indicates that the method is accessible to any object for which this object is in scope.   
+    | Public = 0x0006
+    // Indicates that the method is defined on the type; otherwise, it is defined per instance.
+    | Static = 0x0010
+    // Indicates that the method cannot be overridden.
+    | Final = 0x0020
+    // Indicates that the method is virtual.
+    | Virtual = 0x0040
+    // Indicates that the method hides by name and signature; otherwise, by name only.
+    | HideBySig = 0x0080
+    // vtable layout mask - Use this mask to retrieve vtable attributes.
+    | VtableLayoutMask = 0x0100
+    // Indicates that the method will reuse an existing slot in the vtable. This is the default behavior.
+    | ReuseSlot = 0x0000
+    // Indicates that the method always gets a new slot in the vtable.
+    | NewSlot = 0x0100
+    // Indicates that the class does not provide an implementation of this method.
+    | Abstract = 0x0400
+    // Indicates that the method is special. The name describes how this method is special.
+    | SpecialName = 0x0800
+    // Indicates that the method implementation is forwarded through PInvoke (Platform Invocation Services).
+    | PinvokeImpl = 0x2000
+    // Indicates that the managed method is exported by thunk to unmanaged code. 
+    | UnmanagedExport = 0x0008
+    // Indicates that the common language runtime checks the name encoding.
+    | RTSpecialName = 0x1000
+    // Reserved flags for runtime use only. 
+    | ReservedMask = 0xd000
+    // Indicates that the method has security associated with it. Reserved flag for runtime use only.
+    | HasSecurity = 0x4000
+    // Indicates that the method calls another method containing security code. Reserved flag for runtime use only.
+    | RequireSecObject = 0x8000
+
 // Defines metadata table codes
 type TableId =
     | Assembly = 0x20
