@@ -89,6 +89,28 @@ type Variant(value: VariantValue) =
             | TypeCode.Decimal -> Variant(VarDecimal(v :?> decimal))
             | TypeCode.String -> Variant(VarString(v :?> string))
             | _ -> Variant(VarObject(v))
+    member this.IsNull() =
+        match this.value with
+        | VarNull -> true
+        | _ -> false
+    member this.ToBoolean() =
+        match this.value with
+        | VarNull -> false
+        | VarBool t -> t
+        | VarChar t -> int t <> 0
+        | VarInt8 t ->  int t <> 0
+        | VarUInt8 t -> int t <> 0
+        | VarInt16 t -> int t <> 0
+        | VarUInt16 t -> int t <> 0
+        | VarInt32 t -> t <> 0
+        | VarUInt32 t -> t <> 0u
+        | VarInt64 t -> t <> 0L
+        | VarUInt64 t -> t <> 0UL
+        | VarSingle t -> t <> float32 0
+        | VarDouble t -> t <> 0.0
+        | VarDecimal t -> t <> decimal 0
+        | VarString _ -> true
+        | VarObject _ -> true
     member this.ToInt32() =
         match this.value with
         | VarNull -> 0
@@ -251,6 +273,15 @@ type Variant(value: VariantValue) =
         | VarDecimal t -> t.ToString()
         | VarString t -> t.ToString()
         | VarObject t -> t.ToString()
+    member this.ToUnsigned() =
+        match this.value with
+        | VarBool x -> Variant(VarUInt32(boolU32(x)))
+        | VarChar x -> Variant(VarUInt32(uint32 x))
+        | VarInt8 x -> Variant(VarUInt32(uint32 x))
+        | VarInt16 x -> Variant(VarUInt32(uint32 x))
+        | VarInt32 x -> Variant(VarUInt32(uint32 x))
+        | VarInt64 x -> Variant(VarUInt64(uint64 x))
+        | _ -> this
     static member Compare (a: Variant) (b: Variant) =
         match a.value with
         | VarNull ->
@@ -508,14 +539,14 @@ type Variant(value: VariantValue) =
         | VarString x -> x.GetHashCode()
         | VarObject x -> x.GetHashCode()
     // <, >, <=, >= operators
-    static member op_Equality (a: Variant, b: Variant) = Variant.Compare a b = 0
-    static member op_Inequality (a: Variant, b: Variant) =  Variant.Compare a b <> 0
-    static member op_LessThen (a: Variant, b: Variant) = Variant.Compare a b < 0
-    static member op_GreaterThen (a: Variant, b: Variant) = Variant.Compare a b > 0
-    static member op_LessThanOrEqual (a: Variant, b: Variant) = Variant.Compare a b <= 0
-    static member op_GreaterThanOrEqual (a: Variant, b: Variant) = Variant.Compare a b >= 0
+    static member (=) (a: Variant, b: Variant) = Variant.Compare a b = 0
+    static member (<>) (a: Variant, b: Variant) =  Variant.Compare a b <> 0
+    static member (<) (a: Variant, b: Variant) = Variant.Compare a b < 0
+    static member (>) (a: Variant, b: Variant) = Variant.Compare a b > 0
+    static member (<=) (a: Variant, b: Variant) = Variant.Compare a b <= 0
+    static member (>=) (a: Variant, b: Variant) = Variant.Compare a b >= 0
     // unary minus
-    static member op_UnaryMinus (a: Variant) =
+    static member op_Negate (a: Variant) =
         match a.value with
         | VarNull -> a
         | VarBool x -> Variant(VarInt32(-boolI32(x)))
@@ -765,7 +796,7 @@ type Variant(value: VariantValue) =
             match b.value with
             | VarString _ -> Variant(VarDecimal(-b.ToDecimal()))
             | VarObject _ -> notSupported()
-            | _ -> Variant.op_UnaryMinus(b)
+            | _ -> Variant.op_Negate(b)
         | VarBool x ->
             match b.value with
             | VarNull -> a
@@ -1661,22 +1692,7 @@ type Variant(value: VariantValue) =
             | _ -> notSupported()
         | _ -> notSupported()
     static member op_Not (a: Variant) =
-        match a.value with
-        | VarNull -> VarBool(true)
-        | VarBool x -> VarBool(not x)
-        | VarChar x -> VarChar(char(~~~uint32(x)))
-        | VarInt8 x -> VarInt8(~~~x)
-        | VarUInt8 x -> VarUInt8(~~~x)
-        | VarInt16 x -> VarInt16(~~~x)
-        | VarUInt16 x -> VarUInt16(~~~x)
-        | VarInt32 x -> VarInt32(~~~x)
-        | VarUInt32 x -> VarUInt32(~~~x)
-        | VarInt64 x -> VarInt64(~~~x)
-        | VarUInt64 x -> VarUInt64(~~~x)
-        | VarSingle x -> VarSingle(float32(~~~int64(roundDouble(double x))))
-        | VarDouble x -> VarDouble(double(~~~int64(roundDouble(x))))
-        | VarDecimal x -> VarDecimal(decimal(~~~int64(roundDecimal(x))))
-        | _ -> notSupported()
+        Variant(VarBool(not (a.ToBoolean())))
     static member op_BitwiseNot (a: Variant) =
         match a.value with
         | VarNull -> VarInt32(~~~0)
@@ -1694,37 +1710,37 @@ type Variant(value: VariantValue) =
         | VarDouble x -> VarDouble(double(~~~int64(roundDouble(x))))
         | VarDecimal x -> VarDecimal(decimal(~~~int64(roundDecimal(x))))
         | _ -> notSupported()
-    static member op_BitwiseShiftLeft (a: Variant) (shift: int) =
+    static member (<<<) (a: Variant, shift: int) =
         match a.value with
-        | VarNull -> VarInt32(0)
-        | VarBool x -> VarInt32(boolI32(x) <<< shift)
-        | VarChar x -> VarChar(char(uint32(x) <<< shift))
-        | VarInt8 x -> VarInt8(x <<< shift)
-        | VarUInt8 x -> VarUInt8(x <<< shift)
-        | VarInt16 x -> VarInt16(x <<< shift)
-        | VarUInt16 x -> VarUInt16(x <<< shift)
-        | VarInt32 x -> VarInt32(x <<< shift)
-        | VarUInt32 x -> VarUInt32(x <<< shift)
-        | VarInt64 x -> VarInt64(x <<< shift)
-        | VarUInt64 x -> VarUInt64(x <<< shift)
-        | VarSingle x -> VarSingle(float32(int64(roundDouble(double x)) <<< shift))
-        | VarDouble x -> VarDouble(double(int64(roundDouble(x)) <<< shift))
-        | VarDecimal x -> VarDecimal(decimal(int64(roundDecimal(x)) <<< shift))
+        | VarNull -> Variant(VarInt32(0))
+        | VarBool x -> Variant(VarInt32(boolI32(x) <<< shift))
+        | VarChar x -> Variant(VarChar(char(uint32(x) <<< shift)))
+        | VarInt8 x -> Variant(VarInt8(x <<< shift))
+        | VarUInt8 x -> Variant(VarUInt8(x <<< shift))
+        | VarInt16 x -> Variant(VarInt16(x <<< shift))
+        | VarUInt16 x -> Variant(VarUInt16(x <<< shift))
+        | VarInt32 x -> Variant(VarInt32(x <<< shift))
+        | VarUInt32 x -> Variant(VarUInt32(x <<< shift))
+        | VarInt64 x -> Variant(VarInt64(x <<< shift))
+        | VarUInt64 x -> Variant(VarUInt64(x <<< shift))
+        | VarSingle x -> Variant(VarSingle(float32(int64(roundDouble(double x)) <<< shift)))
+        | VarDouble x -> Variant(VarDouble(double(int64(roundDouble(x)) <<< shift)))
+        | VarDecimal x -> Variant(VarDecimal(decimal(int64(roundDecimal(x)) <<< shift)))
         | _ -> notSupported()
-    static member op_BitwiseShiftRight (a: Variant) (shift: int) =
+    static member (>>>) (a: Variant, shift: int) =
         match a.value with
-        | VarNull -> VarInt32(0)
-        | VarBool x -> VarInt32(boolI32(x) >>> shift)
-        | VarChar x -> VarChar(char(uint32(x) >>> shift))
-        | VarInt8 x -> VarInt8(x >>> shift)
-        | VarUInt8 x -> VarUInt8(x >>> shift)
-        | VarInt16 x -> VarInt16(x >>> shift)
-        | VarUInt16 x -> VarUInt16(x >>> shift)
-        | VarInt32 x -> VarInt32(x >>> shift)
-        | VarUInt32 x -> VarUInt32(x >>> shift)
-        | VarInt64 x -> VarInt64(x >>> shift)
-        | VarUInt64 x -> VarUInt64(x >>> shift)
-        | VarSingle x -> VarSingle(float32(int64(roundDouble(double x)) >>> shift))
-        | VarDouble x -> VarDouble(double(int64(roundDouble(x)) >>> shift))
-        | VarDecimal x -> VarDecimal(decimal(int64(roundDecimal(x)) >>> shift))
+        | VarNull -> Variant(VarInt32(0))
+        | VarBool x -> Variant(VarInt32(boolI32(x) >>> shift))
+        | VarChar x -> Variant(VarChar(char(uint32(x) >>> shift)))
+        | VarInt8 x -> Variant(VarInt8(x >>> shift))
+        | VarUInt8 x -> Variant(VarUInt8(x >>> shift))
+        | VarInt16 x -> Variant(VarInt16(x >>> shift))
+        | VarUInt16 x -> Variant(VarUInt16(x >>> shift))
+        | VarInt32 x -> Variant(VarInt32(x >>> shift))
+        | VarUInt32 x -> Variant(VarUInt32(x >>> shift))
+        | VarInt64 x -> Variant(VarInt64(x >>> shift))
+        | VarUInt64 x -> Variant(VarUInt64(x >>> shift))
+        | VarSingle x -> Variant(VarSingle(float32(int64(roundDouble(double x)) >>> shift)))
+        | VarDouble x -> Variant(VarDouble(double(int64(roundDouble(x)) >>> shift)))
+        | VarDecimal x -> Variant(VarDecimal(decimal(int64(roundDecimal(x)) >>> shift)))
         | _ -> notSupported()

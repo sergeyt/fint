@@ -95,6 +95,154 @@ let run reader =
             c.args.[i] <- v
             c
 
+        let isBranch ctx op =
+            match op with 
+            | BranchOp.False -> 
+                let (v, c) = popval ctx
+                (not (v.ToBoolean()), c)
+            | BranchOp.True -> 
+                let (v, c) = popval ctx 
+                (v.ToBoolean(), c)
+            | BranchOp.Null ->
+                let (v, c) = popval ctx 
+                (v.IsNull(), c)
+            | BranchOp.NotNull ->
+                let (v, c) = popval ctx 
+                (not (v.IsNull()), c)
+            | BranchOp.Equal ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x = y, cx)
+            | BranchOp.NotEqual ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x <> y, cx)
+            | BranchOp.NotEqualUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x.ToUnsigned() <> y.ToUnsigned(), cx)
+            | BranchOp.LessThan ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x < y, cx)
+            | BranchOp.LessThanUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x.ToUnsigned() < y.ToUnsigned(), cx)
+            | BranchOp.LessThanOrEqual ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x <= y, cx)
+            | BranchOp.LessThanOrEqualUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x.ToUnsigned() <= y.ToUnsigned(), cx)
+            | BranchOp.GreaterThan ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x > y, cx)
+            | BranchOp.GreaterThanUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x.ToUnsigned() > y.ToUnsigned(), cx)
+            | BranchOp.GreaterThanOrEqual ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x >= y, cx)
+            | BranchOp.GreaterThanOrEqualUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                (x.ToUnsigned() >= y.ToUnsigned(), cx)
+            | _ -> failwith "not implemented"
+
+        let branch ctx op i =
+            let (v, c) = isBranch ctx op
+            match v with
+            | true -> goto c i
+            | false -> next c
+
+        let calc ctx op ovf =
+            match op with
+            | CalcOp.Add ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x + y)
+            | CalcOp.AddUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() + y.ToUnsigned())
+            | CalcOp.Sub ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x - y)
+            | CalcOp.SubUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() - y.ToUnsigned())
+            | CalcOp.Mul ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x * y)
+            | CalcOp.MulUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() * y.ToUnsigned())
+            | CalcOp.Div ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x / y)
+            | CalcOp.DivUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() / y.ToUnsigned())
+            | CalcOp.Rem ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x % y)
+            | CalcOp.RemUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() % y.ToUnsigned())
+            | CalcOp.ShiftLeft ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x <<< (y.ToInt32()))
+            | CalcOp.ShiftRight ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x >>> (y.ToInt32()))
+            | CalcOp.ShiftRightUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x.ToUnsigned() >>> (y.ToInt32()))
+            | CalcOp.Neg ->
+                let (v, c) = popval ctx 
+                push c (Variant.op_Negate(v))
+            | CalcOp.Not ->
+                let (v, c) = popval ctx 
+                push c (Variant.op_Not(v))
+            | CalcOp.Equal ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (Variant(VarBool(x = y)))
+            | CalcOp.LessThan ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (Variant(VarBool(x < y)))
+            | CalcOp.LessThanUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (Variant(VarBool(x.ToUnsigned() < y.ToUnsigned())))
+            | CalcOp.GreaterThan ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (Variant(VarBool(x > y)))
+            | CalcOp.GreaterThanUnsigned ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (Variant(VarBool(x.ToUnsigned() > y.ToUnsigned())))
+            | _ -> failwith "not implemented"
+
         let resolveString token =
             let t = meta.resolveToken token
             match t with
@@ -249,6 +397,64 @@ let run reader =
             // branching instructions
             | InstructionCode.Br_S
             | InstructionCode.Br -> goto ctx (dataInt32 i.operand)
+            | InstructionCode.Brfalse_S
+            | InstructionCode.Brfalse -> branch ctx BranchOp.False (dataInt32 i.operand)
+            | InstructionCode.Brtrue_S
+            | InstructionCode.Brtrue -> branch ctx BranchOp.True (dataInt32 i.operand)
+            | InstructionCode.Beq_S
+            | InstructionCode.Beq -> branch ctx BranchOp.Equal (dataInt32 i.operand)
+            | InstructionCode.Bge_S
+            | InstructionCode.Bge -> branch ctx BranchOp.GreaterThanOrEqual (dataInt32 i.operand)
+            | InstructionCode.Bgt_S
+            | InstructionCode.Bgt -> branch ctx BranchOp.GreaterThan (dataInt32 i.operand)
+            | InstructionCode.Ble_S
+            | InstructionCode.Ble -> branch ctx BranchOp.LessThanOrEqual (dataInt32 i.operand)
+            | InstructionCode.Blt_S
+            | InstructionCode.Blt -> branch ctx BranchOp.LessThan (dataInt32 i.operand)
+            | InstructionCode.Bne_Un_S
+            | InstructionCode.Bne_Un -> branch ctx BranchOp.NotEqualUnsigned (dataInt32 i.operand)
+            | InstructionCode.Bge_Un_S
+            | InstructionCode.Bge_Un -> branch ctx BranchOp.GreaterThanOrEqualUnsigned (dataInt32 i.operand)
+            | InstructionCode.Bgt_Un_S
+            | InstructionCode.Bgt_Un -> branch ctx BranchOp.GreaterThanOrEqualUnsigned (dataInt32 i.operand)
+            | InstructionCode.Ble_Un_S
+            | InstructionCode.Ble_Un -> branch ctx BranchOp.LessThanOrEqualUnsigned (dataInt32 i.operand)
+            | InstructionCode.Blt_Un_S
+            | InstructionCode.Blt_Un -> branch ctx BranchOp.LessThanUnsigned (dataInt32 i.operand)
+            | InstructionCode.Switch ->
+                match i.operand with
+                | SwitchTarget targets ->
+                    let (v, c) = popval ctx
+                    let index = v.ToInt32()
+                    if index >= 0 && index < targets.Length
+                    then goto c targets.[index]
+                    else next c
+                | _ -> invalidOp "expect switch operand"
+            // arithmetic operations
+            | InstructionCode.Add -> calc ctx CalcOp.Add false
+            | InstructionCode.Add_Ovf -> calc ctx CalcOp.Add true
+            | InstructionCode.Add_Ovf_Un -> calc ctx CalcOp.AddUnsigned true
+            | InstructionCode.Sub -> calc ctx CalcOp.Sub false
+            | InstructionCode.Sub_Ovf -> calc ctx CalcOp.Sub true
+            | InstructionCode.Sub_Ovf_Un -> calc ctx CalcOp.SubUnsigned true
+            | InstructionCode.Mul -> calc ctx CalcOp.Mul false
+            | InstructionCode.Mul_Ovf -> calc ctx CalcOp.Mul true
+            | InstructionCode.Mul_Ovf_Un -> calc ctx CalcOp.MulUnsigned true
+            | InstructionCode.Div -> calc ctx CalcOp.Div false
+            | InstructionCode.Div_Un -> calc ctx CalcOp.DivUnsigned false
+            | InstructionCode.Rem -> calc ctx CalcOp.Rem false
+            | InstructionCode.Rem_Un -> calc ctx CalcOp.RemUnsigned false
+            // TODO bitwise operations
+            | InstructionCode.Shl -> calc ctx CalcOp.ShiftLeft false
+            | InstructionCode.Shr -> calc ctx CalcOp.ShiftRight false
+            | InstructionCode.Shr_Un -> calc ctx CalcOp.ShiftRightUnsigned false
+            | InstructionCode.Neg -> calc ctx CalcOp.Neg false
+            | InstructionCode.Not -> calc ctx CalcOp.Neg false
+            | InstructionCode.Ceq -> calc ctx CalcOp.Equal false
+            | InstructionCode.Cgt -> calc ctx CalcOp.GreaterThan false
+            | InstructionCode.Cgt_Un -> calc ctx CalcOp.GreaterThanUnsigned false
+            | InstructionCode.Clt -> calc ctx CalcOp.LessThan false
+            | InstructionCode.Clt_Un -> calc ctx CalcOp.LessThanUnsigned false
             | _ -> failwith "not implemented"
 
         let body = expectBody ctx.method
