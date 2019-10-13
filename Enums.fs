@@ -130,6 +130,18 @@ type TableId =
     | EncodingLog = 30
     | EncodingMap = 31
 
+type BranchOp =
+    | False = 0
+    | True = 1
+    | Null = 2
+    | NotNull = 3
+    | Equal = 4 
+    | NotEqual = 5
+    | LessThan = 6
+    | LessThanOrEqual = 7
+    | GreaterThan = 8
+    | GreaterThanOrEqual = 9
+
 // Enumerates CIL instruction codes
 type InstructionCode =
     // Fills space if opcodes are patched. No meaningful operation is performed although a processing cycle can be consumed.

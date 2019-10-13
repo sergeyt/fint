@@ -118,20 +118,22 @@ type TypeSignature =
     | RefTypeSig of ElementType * TypeSignature
     | TypeIndexSig of ElementType * TableIndex
     | ArrayTypeSig of TypeSignature * ArrayShape
-    | GenericVarTypeSig of ElementType * int
-
-type LocalVar = {
-    Index: int;
-    Type: TypeSignature;
-    Name: string;
-}
-
-type MethodSignature = {
+    | MethodPtrTypeSig of MethodSignature
+    | TypeGenericVar of int
+    | MethodGenericVar of int
+    
+and MethodSignature = {
     IsProperty: bool;
     CallingConventions: CallingConventions;
     GenericParamCount: int;
     ReturnType: TypeSignature;
     Params: TypeSignature array;
+}
+
+type LocalVar = {
+    Index: int;
+    Type: TypeSignature;
+    Name: string;
 }
 
 let rec decodeTypeSignature (reader: BinaryReader) =
@@ -165,6 +167,15 @@ let rec decodeTypeSignature (reader: BinaryReader) =
         | ElementType.Class
         | ElementType.CustomArgsEnum -> TypeIndexSig(e, decodeTypeDefOrRef(reader))
         | ElementType.ArraySz -> ArrayTypeSig(decodeTypeSignature(reader), ArraySzShape)
+        | ElementType.Array ->
+            let t = decodeTypeSignature(reader)
+            let rank = ReadPackedInt(reader)
+            let readArray n = [|1..n|] |> Array.map (fun _ -> ReadPackedInt(reader))
+            let sizes = readArray (ReadPackedInt(reader))
+            let loBounds = readArray (ReadPackedInt(reader))
+            ArrayTypeSig(t, {Rank=rank;Sizes=sizes;LoBounds=loBounds})
+        | ElementType.Var -> TypeGenericVar(ReadPackedInt(reader))
+        | ElementType.MethodVar -> MethodGenericVar(ReadPackedInt(reader))
         | _ -> failwith "not implemented"
 
 

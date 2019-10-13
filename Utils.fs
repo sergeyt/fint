@@ -1,5 +1,6 @@
 module Fint.Utils
 
+open System
 open System.Collections.Generic
 
 let memoize fn =
@@ -11,3 +12,5 @@ let memoize fn =
         let v = fn (x)
         cache.Add(x, v)
         v)
+
+let notSupported() = raise <| NotSupportedException()
