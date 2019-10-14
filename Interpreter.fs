@@ -203,6 +203,18 @@ let run reader =
                 let (y, cy) = popval ctx 
                 let (x, cx) = popval cy
                 push cx (x.ToUnsigned() % y.ToUnsigned())
+            | CalcOp.BitwiseAnd ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x &&& y)
+            | CalcOp.BitwiseOr ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x ||| y)
+            | CalcOp.Xor ->
+                let (y, cy) = popval ctx 
+                let (x, cx) = popval cy
+                push cx (x ^^^ y)
             | CalcOp.ShiftLeft ->
                 let (y, cy) = popval ctx 
                 let (x, cx) = popval cy
@@ -444,7 +456,9 @@ let run reader =
             | InstructionCode.Div_Un -> calc ctx CalcOp.DivUnsigned false
             | InstructionCode.Rem -> calc ctx CalcOp.Rem false
             | InstructionCode.Rem_Un -> calc ctx CalcOp.RemUnsigned false
-            // TODO bitwise operations
+            | InstructionCode.And -> calc ctx CalcOp.BitwiseAnd false
+            | InstructionCode.Or -> calc ctx CalcOp.BitwiseOr false
+            | InstructionCode.Xor -> calc ctx CalcOp.Xor false
             | InstructionCode.Shl -> calc ctx CalcOp.ShiftLeft false
             | InstructionCode.Shr -> calc ctx CalcOp.ShiftRight false
             | InstructionCode.Shr_Un -> calc ctx CalcOp.ShiftRightUnsigned false
