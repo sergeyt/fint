@@ -17,7 +17,6 @@ type InstructionOperand =
     | Float32Operand of float32
     | Float64Operand of double
     | SwitchTarget of SwitchTarget
-    | VarOperand of int32
     | BranchTarget of int32
     | MetadataToken of int32
 
@@ -113,8 +112,8 @@ let readOperand (reader : BinaryReader, opCode : OpCode, startPos : int64) =
         let shift = int (GetPosition(reader) - startPos)
         let result = branches |> Array.map (fun t -> t + shift)
         SwitchTarget(result)
-    | OperandType.InlineVar -> VarOperand(reader.ReadInt32())
-    | OperandType.ShortInlineVar -> VarOperand(int (reader.ReadSByte()))
+    | OperandType.InlineVar -> Int32Operand(reader.ReadInt32())
+    | OperandType.ShortInlineVar -> Int32Operand(int (reader.ReadSByte()))
     // metadata tokens
     | OperandType.InlineField
     | OperandType.InlineMethod
