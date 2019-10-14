@@ -10,15 +10,20 @@ function run() {
     OUT=`dotnet run ${DLL}`
     if [[ $OUT != $EXPECTED ]]
     then
-        echo "FAIL ${SAMPLE}! EXPECTED '${EXPECTED}', BUT WAS '${OUT}'"
+        echo "FAIL ${SAMPLE}"
+        icdiff <(echo "${EXPECTED}") <(echo "${OUT}")
     else
         echo "PASS ${SAMPLE}"
     fi
 }
 
-run $1
-
-# for f in test/Switch*.cs
-# do
-#     run $f
-# done
+SAMPLE=$1
+if [[ $SAMPLE == "all" ]]
+then
+    for f in test/*.cs
+    do
+        run $f
+    done
+else
+    run $SAMPLE
+fi
