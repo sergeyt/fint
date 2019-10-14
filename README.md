@@ -8,5 +8,5 @@ ECMA-335 CIL interpreter in pure F#
 - [x] metadata reader
 - [x] method body reader
 - [x] static method calls
-- [ ] simple arithmetic interpreter without assembly resolving
+- [x] simple arithmetic interpreter without assembly resolving
 - [ ] object model
