@@ -48,6 +48,26 @@ let run reader =
         | ElementType.Object -> Variant(VarObject(null))
         | _ -> notSupported()
 
+    let convarg (v: Variant) t =
+        match t with
+        | PrimitiveTypeSig t ->
+            match t with
+                | ElementType.Boolean -> v.ChangeType(TypeCode.Boolean)
+                | ElementType.Char -> v.ChangeType(TypeCode.Char)
+                | ElementType.Int8 -> v.ChangeType(TypeCode.SByte)
+                | ElementType.UInt8 -> v.ChangeType(TypeCode.Byte)
+                | ElementType.Int16 -> v.ChangeType(TypeCode.Int16)
+                | ElementType.UInt16 -> v.ChangeType(TypeCode.UInt16)
+                | ElementType.Int32 -> v.ChangeType(TypeCode.Int32)
+                | ElementType.UInt32 -> v.ChangeType(TypeCode.UInt32)
+                | ElementType.Int64 -> v.ChangeType(TypeCode.Int64)
+                | ElementType.UInt64 -> v.ChangeType(TypeCode.UInt64)
+                | ElementType.Single -> v.ChangeType(TypeCode.Single)
+                | ElementType.Double -> v.ChangeType(TypeCode.Double)
+                | ElementType.String -> v.ChangeType(TypeCode.String)
+                | _ -> v
+        | _ -> v
+
     let allocType t =
         match t with
         | PrimitiveTypeSig t -> allocPrimitive t
@@ -255,6 +275,14 @@ let run reader =
                 push cx (Variant(VarBool(x.ToUnsigned() > y.ToUnsigned())))
             | _ -> failwith "not implemented"
 
+        let conv ctx t ovf =
+            let (v, c) = popval ctx
+            push c (v.ChangeType(t))
+        let convun ctx t ovf =
+            let (v, c) = popval ctx
+            // TODO check overflow
+            push c (v.ToUnsigned().ChangeType(t))
+
         let resolveString token =
             let t = meta.resolveToken token
             match t with
@@ -307,7 +335,7 @@ let run reader =
             while i >= 0 do
                 let (v, t) = popval c
                 c <- t
-                args.[i] <- v
+                args.[i] <- convarg v (signature.Params.[i])
                 i <- i - 1
             (args, c)
 
@@ -479,6 +507,40 @@ let run reader =
             | InstructionCode.Box ->
                 let (v, c) = popval ctx
                 push c (Variant(VarObject(v.ToObject())))
+            // conversion instructions
+            | InstructionCode.Conv_I1 -> conv ctx TypeCode.SByte false
+            | InstructionCode.Conv_I2 -> conv ctx TypeCode.Int16 false
+            | InstructionCode.Conv_I4 -> conv ctx TypeCode.Int32 false
+            | InstructionCode.Conv_I8 -> conv ctx TypeCode.Int64 false
+            | InstructionCode.Conv_R4 -> conv ctx TypeCode.Single false
+            | InstructionCode.Conv_R8 -> conv ctx TypeCode.Double false
+            | InstructionCode.Conv_U1 -> conv ctx TypeCode.Byte false
+            | InstructionCode.Conv_U2 -> conv ctx TypeCode.UInt16 false
+            | InstructionCode.Conv_U4 -> conv ctx TypeCode.UInt32 false
+            | InstructionCode.Conv_U8 -> conv ctx TypeCode.UInt64 false
+            | InstructionCode.Conv_Ovf_I1_Un -> convun ctx TypeCode.SByte true
+            | InstructionCode.Conv_Ovf_I2_Un -> convun ctx TypeCode.Int16 true
+            | InstructionCode.Conv_Ovf_I4_Un -> convun ctx TypeCode.Int32 true
+            | InstructionCode.Conv_Ovf_I8_Un -> convun ctx TypeCode.Int64 true
+            | InstructionCode.Conv_Ovf_U1_Un -> convun ctx TypeCode.Byte true
+            | InstructionCode.Conv_Ovf_U2_Un -> convun ctx TypeCode.UInt16 true
+            | InstructionCode.Conv_Ovf_U4_Un -> convun ctx TypeCode.UInt32 true
+            | InstructionCode.Conv_Ovf_U8_Un -> convun ctx TypeCode.UInt64 true
+            | InstructionCode.Conv_Ovf_I_Un -> convun ctx TypeCode.Int32 true
+            | InstructionCode.Conv_Ovf_U_Un -> convun ctx TypeCode.UInt32 true
+            | InstructionCode.Conv_Ovf_I1 -> conv ctx TypeCode.SByte true
+            | InstructionCode.Conv_Ovf_U1 -> conv ctx TypeCode.Byte true
+            | InstructionCode.Conv_Ovf_I2 -> conv ctx TypeCode.Int16 true
+            | InstructionCode.Conv_Ovf_U2 -> conv ctx TypeCode.UInt16 true
+            | InstructionCode.Conv_Ovf_I4 -> conv ctx TypeCode.Int32 true
+            | InstructionCode.Conv_Ovf_U4 -> conv ctx TypeCode.UInt32 true
+            | InstructionCode.Conv_Ovf_I8 -> conv ctx TypeCode.Int64 true
+            | InstructionCode.Conv_Ovf_U8 -> conv ctx TypeCode.UInt64 true
+            | InstructionCode.Conv_I -> conv ctx TypeCode.Int32 false
+            | InstructionCode.Conv_Ovf_I -> conv ctx TypeCode.Int32 true
+            | InstructionCode.Conv_U -> conv ctx TypeCode.UInt32 false
+            | InstructionCode.Conv_Ovf_U -> conv ctx TypeCode.UInt32 true
+            | InstructionCode.Conv_R_Un -> convun ctx TypeCode.Single false
             | _ -> failwith "not implemented"
 
         let body = expectBody ctx.method

@@ -111,10 +111,95 @@ type Variant(value: VariantValue) =
         | VarDecimal t -> t <> decimal 0
         | VarString _ -> true
         | VarObject _ -> true
+    member this.ToChar() =
+        match this.value with
+        | VarNull -> char 0
+        | VarBool t -> char(boolU32(t))
+        | VarChar t -> char t
+        | VarInt8 t ->  char t
+        | VarUInt8 t -> char t
+        | VarInt16 t -> char t
+        | VarUInt16 t -> char t
+        | VarInt32 t -> char t
+        | VarUInt32 t -> char t
+        | VarInt64 t -> char t
+        | VarUInt64 t -> char t
+        | VarSingle t -> char t
+        | VarDouble t -> char t
+        | VarDecimal t -> char t
+        | _ -> notSupported()
+    member this.ToSByte() =
+        match this.value with
+        | VarNull -> sbyte 0
+        | VarBool t -> sbyte(boolI32(t))
+        | VarChar t -> sbyte t
+        | VarInt8 t ->  sbyte t
+        | VarUInt8 t -> sbyte t
+        | VarInt16 t -> sbyte t
+        | VarUInt16 t -> sbyte t
+        | VarInt32 t -> sbyte t
+        | VarUInt32 t -> sbyte t
+        | VarInt64 t -> sbyte t
+        | VarUInt64 t -> sbyte t
+        | VarSingle t -> sbyte t
+        | VarDouble t -> sbyte t
+        | VarDecimal t -> sbyte t
+        | _ -> notSupported()
+    member this.ToByte() =
+        match this.value with
+        | VarNull -> byte 0
+        | VarBool t -> byte(boolI32(t))
+        | VarChar t -> byte t
+        | VarInt8 t ->  byte t
+        | VarUInt8 t -> byte t
+        | VarInt16 t -> byte t
+        | VarUInt16 t -> byte t
+        | VarInt32 t -> byte t
+        | VarUInt32 t -> byte t
+        | VarInt64 t -> byte t
+        | VarUInt64 t -> byte t
+        | VarSingle t -> byte t
+        | VarDouble t -> byte t
+        | VarDecimal t -> byte t
+        | _ -> notSupported()
+    member this.ToInt16() =
+        match this.value with
+        | VarNull -> int16 0
+        | VarBool t -> int16(boolI32(t))
+        | VarChar t -> int16 t
+        | VarInt8 t ->  int16 t
+        | VarUInt8 t -> int16 t
+        | VarInt16 t -> int16 t
+        | VarUInt16 t -> int16 t
+        | VarInt32 t -> int16 t
+        | VarUInt32 t -> int16 t
+        | VarInt64 t -> int16 t
+        | VarUInt64 t -> int16 t
+        | VarSingle t -> int16 t
+        | VarDouble t -> int16 t
+        | VarDecimal t -> int16 t
+        | _ -> notSupported()
+    member this.ToUInt16() =
+        match this.value with
+        | VarNull -> uint16 0
+        | VarBool t -> uint16(boolI32(t))
+        | VarChar t -> uint16 t
+        | VarInt8 t ->  uint16 t
+        | VarUInt8 t -> uint16 t
+        | VarInt16 t -> uint16 t
+        | VarUInt16 t -> uint16 t
+        | VarInt32 t -> uint16 t
+        | VarUInt32 t -> uint16 t
+        | VarInt64 t -> uint16 t
+        | VarUInt64 t -> uint16 t
+        | VarSingle t -> uint16 t
+        | VarDouble t -> uint16 t
+        | VarDecimal t -> uint16 t
+        | _ -> notSupported()
     member this.ToInt32() =
         match this.value with
         | VarNull -> 0
-        | VarBool t -> if t then 1 else 0
+        | VarBool t -> boolI32(t)
         | VarChar t -> int t
         | VarInt8 t -> int t
         | VarUInt8 t -> int t
@@ -132,7 +217,7 @@ type Variant(value: VariantValue) =
     member this.ToUInt32() =
         match this.value with
         | VarNull -> 0u
-        | VarBool t -> if t then 1u else 0u
+        | VarBool t -> boolU32(t)
         | VarChar t -> uint32 t
         | VarInt8 t -> uint32 t
         | VarUInt8 t -> uint32 t
@@ -282,6 +367,23 @@ type Variant(value: VariantValue) =
         | VarInt32 x -> Variant(VarUInt32(uint32 x))
         | VarInt64 x -> Variant(VarUInt64(uint64 x))
         | _ -> this
+    member this.ChangeType(t: TypeCode) =
+        match t with
+        | TypeCode.Boolean -> Variant(VarBool(this.ToBoolean()))
+        | TypeCode.Char -> Variant(VarChar(this.ToChar()))
+        | TypeCode.SByte -> Variant(VarInt8(this.ToSByte()))
+        | TypeCode.Byte -> Variant(VarUInt8(this.ToByte()))
+        | TypeCode.Int16 -> Variant(VarInt16(this.ToInt16()))
+        | TypeCode.UInt16 -> Variant(VarUInt16(this.ToUInt16()))
+        | TypeCode.Int32 -> Variant(VarInt32(this.ToInt32()))
+        | TypeCode.UInt32 -> Variant(VarUInt32(this.ToUInt32()))
+        | TypeCode.Int64 -> Variant(VarInt64(this.ToInt64()))
+        | TypeCode.UInt64 -> Variant(VarUInt64(this.ToUInt64()))
+        | TypeCode.Single -> Variant(VarSingle(this.ToSingle()))
+        | TypeCode.Double -> Variant(VarDouble(this.ToDouble()))
+        | TypeCode.Decimal -> Variant(VarDecimal(this.ToDecimal()))
+        | TypeCode.String -> Variant(VarString(this.ToString()))
+        | _ -> notSupported()
     static member Compare (a: Variant) (b: Variant) =
         match a.value with
         | VarNull ->
