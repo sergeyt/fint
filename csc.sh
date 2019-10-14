@@ -8,5 +8,5 @@ SAMPLE=$1
 NAME=${SAMPLE%???}
 OUT=${NAME}.dll
 
-dotnet ${CSC} -r:${LIB}/System.Private.CoreLib.dll -r:${LIB}/System.Console.dll -r:${LIB}/System.Runtime.dll -out:${OUT} ${SAMPLE}
+dotnet ${CSC} -nologo -r:${LIB}/System.Private.CoreLib.dll -r:${LIB}/System.Console.dll -r:${LIB}/System.Runtime.dll -out:${OUT} ${SAMPLE}
 cp -f test/runtimeconfig.json ${NAME}.runtimeconfig.json
