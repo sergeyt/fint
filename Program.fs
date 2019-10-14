@@ -22,9 +22,5 @@ let checkCorlib() =
 let main argv =
     use input = File.OpenRead(argv.[0])
     let reader = new BinaryReader(input)
-    run reader
-    // let meta = MetaReader(reader)
-    // printfn "%A" (meta.dump())
-    // let entry = meta.readEntryPoint()
-    // printfn "%A" (entry.Value.body())
-    0 // return an integer exit code
+    run reader |> ignore
+    0

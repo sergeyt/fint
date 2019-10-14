@@ -641,12 +641,12 @@ type Variant(value: VariantValue) =
         | VarString x -> x.GetHashCode()
         | VarObject x -> x.GetHashCode()
     // <, >, <=, >= operators
-    static member (=) (a: Variant, b: Variant) = Variant.Compare a b = 0
-    static member (<>) (a: Variant, b: Variant) =  Variant.Compare a b <> 0
-    static member (<) (a: Variant, b: Variant) = Variant.Compare a b < 0
-    static member (>) (a: Variant, b: Variant) = Variant.Compare a b > 0
-    static member (<=) (a: Variant, b: Variant) = Variant.Compare a b <= 0
-    static member (>=) (a: Variant, b: Variant) = Variant.Compare a b >= 0
+    static member op_Equality (a: Variant, b: Variant) = Variant.Compare a b = 0
+    static member op_Inequality (a: Variant, b: Variant) =  Variant.Compare a b <> 0
+    static member op_LessThan (a: Variant, b: Variant) = Variant.Compare a b < 0
+    static member op_GreaterThan (a: Variant, b: Variant) = Variant.Compare a b > 0
+    static member op_LessThanOrEqual (a: Variant, b: Variant) = Variant.Compare a b <= 0
+    static member op_GreaterThanOrEqual (a: Variant, b: Variant) = Variant.Compare a b >= 0
     // unary minus
     static member op_Negate (a: Variant) =
         match a.value with
