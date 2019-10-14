@@ -354,6 +354,7 @@ let MetaReader(reader : BinaryReader) =
         readString = readString;
         resolveToken = resolveToken;
         makeMethod = makeMethod;
+        makeTypeRef = makeTypeRef;
         makeMemberRef = makeMemberRef;
         dump = dump
     |}

@@ -48,7 +48,7 @@ let run reader =
         | ElementType.Object -> Variant(VarObject(null))
         | _ -> notSupported()
 
-    let convarg (v: Variant) t =
+    let convTypeSig (v: Variant) t =
         match t with
         | PrimitiveTypeSig t ->
             match t with
@@ -67,6 +67,33 @@ let run reader =
                 | ElementType.String -> v.ChangeType(TypeCode.String)
                 | _ -> v
         | _ -> v
+
+    let expectRowToken t =
+        match t with
+        | RowToken x -> x
+        | _ -> failwith "expect metadata row"
+
+    let convByToken (v: Variant) (row: Row) =
+        match row.table with
+        | TableId.TypeRef ->
+            let t = meta.makeTypeRef(row.cells)
+            let name = t.ns + "." + t.name
+            match name with
+            | "System.Boolean" -> v.ChangeType(TypeCode.Boolean)
+            | "System.Char" -> v.ChangeType(TypeCode.Char)
+            | "System.SByte" -> v.ChangeType(TypeCode.SByte)
+            | "System.Byte" -> v.ChangeType(TypeCode.Byte)
+            | "System.Int16" -> v.ChangeType(TypeCode.Int16)
+            | "System.UInt16" -> v.ChangeType(TypeCode.UInt16)
+            | "System.Int32" -> v.ChangeType(TypeCode.Int32)
+            | "System.UInt32" -> v.ChangeType(TypeCode.UInt32)
+            | "System.Int64" -> v.ChangeType(TypeCode.Int64)
+            | "System.UInt64" -> v.ChangeType(TypeCode.UInt64)
+            | "System.Single" -> v.ChangeType(TypeCode.Single)
+            | "System.Decimal" -> v.ChangeType(TypeCode.Decimal)
+            | "System.String" -> v.ChangeType(TypeCode.String)
+            | _ -> v
+        | _ -> notSupported()
 
     let allocType t =
         match t with
@@ -223,6 +250,9 @@ let run reader =
                 let (y, cy) = popval ctx 
                 let (x, cx) = popval cy
                 push cx (x.ToUnsigned() % y.ToUnsigned())
+            | CalcOp.BitwiseNot ->
+                let (v, c) = popval ctx 
+                push c (Variant.op_BitwiseNot(v))
             | CalcOp.BitwiseAnd ->
                 let (y, cy) = popval ctx 
                 let (x, cx) = popval cy
@@ -335,7 +365,7 @@ let run reader =
             while i >= 0 do
                 let (v, t) = popval c
                 c <- t
-                args.[i] <- convarg v (signature.Params.[i])
+                args.[i] <- convTypeSig v (signature.Params.[i])
                 i <- i - 1
             (args, c)
 
@@ -498,15 +528,17 @@ let run reader =
             | InstructionCode.Shr -> calc ctx CalcOp.ShiftRight false
             | InstructionCode.Shr_Un -> calc ctx CalcOp.ShiftRightUnsigned false
             | InstructionCode.Neg -> calc ctx CalcOp.Neg false
-            | InstructionCode.Not -> calc ctx CalcOp.Neg false
+            | InstructionCode.Not -> calc ctx CalcOp.BitwiseNot false
             | InstructionCode.Ceq -> calc ctx CalcOp.Equal false
             | InstructionCode.Cgt -> calc ctx CalcOp.GreaterThan false
             | InstructionCode.Cgt_Un -> calc ctx CalcOp.GreaterThanUnsigned false
             | InstructionCode.Clt -> calc ctx CalcOp.LessThan false
             | InstructionCode.Clt_Un -> calc ctx CalcOp.LessThanUnsigned false
             | InstructionCode.Box ->
+                let t = meta.resolveToken (dataToken i.operand)
                 let (v, c) = popval ctx
-                push c (Variant(VarObject(v.ToObject())))
+                let a = convByToken v (expectRowToken t)
+                push c (Variant(VarObject(a.ToObject())))
             // conversion instructions
             | InstructionCode.Conv_I1 -> conv ctx TypeCode.SByte false
             | InstructionCode.Conv_I2 -> conv ctx TypeCode.Int16 false
