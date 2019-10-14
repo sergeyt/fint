@@ -327,10 +327,17 @@ let run reader =
             | _ -> failwith "not supported"
 
         let callConsole ctx memberRef =
-            let (v, c) = pop ctx
+            let (a, c) = popArgs ctx memberRef.signature
+            let args = a |> Array.map (fun t -> t.ToObject())
             match memberRef.name with
-            | "WriteLine" -> Console.WriteLine(v.ToObject())
-            | "Write" -> Console.Write(v.ToObject())
+            | "WriteLine" ->    
+                match a.Length with
+                | 1 -> Console.WriteLine(args.[0])
+                | _ -> Console.WriteLine(a.[0].ToString(), args.[1..])
+            | "Write" ->
+                match a.Length with
+                | 1 -> Console.Write(args.[0])
+                | _ -> Console.Write(a.[0].ToString(), args.[1..])
             | _ -> failwith "not implemented"
             next c
 
@@ -469,6 +476,9 @@ let run reader =
             | InstructionCode.Cgt_Un -> calc ctx CalcOp.GreaterThanUnsigned false
             | InstructionCode.Clt -> calc ctx CalcOp.LessThan false
             | InstructionCode.Clt_Un -> calc ctx CalcOp.LessThanUnsigned false
+            | InstructionCode.Box ->
+                let (v, c) = popval ctx
+                push c (Variant(VarObject(v.ToObject())))
             | _ -> failwith "not implemented"
 
         let body = expectBody ctx.method
