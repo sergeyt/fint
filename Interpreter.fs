@@ -380,7 +380,7 @@ let run reader =
             | InstructionCode.Ldc_I4_6 -> push ctx (Variant(VarInt32(6)))
             | InstructionCode.Ldc_I4_7 -> push ctx (Variant(VarInt32(7)))
             | InstructionCode.Ldc_I4_8 -> push ctx (Variant(VarInt32(8)))
-            | InstructionCode.Ldc_I4_S -> push ctx (Variant(VarInt32(dataInt32 i.operand)))
+            | InstructionCode.Ldc_I4_S
             | InstructionCode.Ldc_I4 -> push ctx (Variant(VarInt32(dataInt32 i.operand)))
             | InstructionCode.Ldc_I8 -> push ctx (Variant(VarInt64((dataInt64 i.operand))))
             | InstructionCode.Ldc_R4 -> push ctx (Variant(VarSingle(dataFloat32 i.operand)))
