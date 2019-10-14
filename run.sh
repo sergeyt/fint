@@ -5,5 +5,5 @@ set -e
 ./build.sh
 IN=$1
 SAMPLE=${IN:=sample1}
-./csc.sh ${SAMPLE}
+./csc.sh test/${SAMPLE}.cs
 dotnet run test/${SAMPLE}.dll

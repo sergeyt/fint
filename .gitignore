@@ -2,5 +2,5 @@ bin
 obj
 .ionide
 .vs
-test/sample*.dll
-test/sample*.runtimeconfig.json
+test/*.dll
+test/*.runtimeconfig.json
