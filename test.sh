@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+./build.sh
+
 function run() {
-    ./build.sh
     SAMPLE=$1
     ./csc.sh ${SAMPLE}
     DLL=${SAMPLE%???}.dll
@@ -9,10 +10,15 @@ function run() {
     OUT=`dotnet run ${DLL}`
     if [[ $OUT != $EXPECTED ]]
     then
-        echo "FAIL! EXPECTED '${EXPECTED}', BUT WAS '${OUT}'"
+        echo "FAIL ${SAMPLE}! EXPECTED '${EXPECTED}', BUT WAS '${OUT}'"
     else
-        echo "PASS"
+        echo "PASS ${SAMPLE}"
     fi
 }
 
 run $1
+
+# for f in test/Switch*.cs
+# do
+#     run $f
+# done
