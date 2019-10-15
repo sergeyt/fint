@@ -183,12 +183,6 @@ let ReadExecutableHeaders(reader : BinaryReader) =
     // StrongNameSignature: 8
     let strongName = ReadDataDirectory(reader)
 
-    // CodeManagerTable: 8
-    // VTableFixups: 8
-    // ExportAddressTableJumps: 8
-    // ManagedNativeHeader: 8
-    // goto metadata
-    // reader.Position = ResolveVirtualAddress metadata.VirtualAddress
     let result : PEImage =
         { Architecture = architecture
           ModuleKind = moduleKind
