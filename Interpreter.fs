@@ -4,7 +4,7 @@ open System
 open Fint.Collections
 open Fint.Enums
 open Fint.MethodBody
-open Fint.Meta
+open Fint.Types
 open Fint.MetaReader
 open Fint.Signature
 open Fint.Variant

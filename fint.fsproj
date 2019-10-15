@@ -16,7 +16,7 @@
     <Compile Include="MethodBody.fs" />
     <Compile Include="CodedIndex.fs" />
     <Compile Include="Signature.fs" />
-    <Compile Include="Meta.fs" />
+    <Compile Include="Types.fs" />
     <Compile Include="Schema.fs" />
     <Compile Include="MetaReader.fs" />
     <Compile Include="Interpreter.fs" />

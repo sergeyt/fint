@@ -4,7 +4,7 @@ open System
 open System.IO
 open System.Collections.Generic
 open Fint.Enums
-open Fint.Meta
+open Fint.Types
 open Fint.PEImage
 open Fint.IO
 open Fint.MethodBody

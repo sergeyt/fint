@@ -1,4 +1,4 @@
-module Fint.Meta
+module Fint.Types
 
 open System
 open Fint.Enums

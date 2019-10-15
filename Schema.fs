@@ -3,7 +3,7 @@ module Fint.Schema
 
 open System
 open Fint.Enums
-open Fint.Meta
+open Fint.Types
 open Fint.CodedIndex
 
 let I32 = Int32(0)
