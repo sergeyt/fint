@@ -198,7 +198,7 @@ let MetaReader(reader : BinaryReader) =
             | StringCell t -> t()
             | GuidCell t -> t().ToString()
             | BlobCell t -> sprintf "BLOB[%d]" (t().Length)
-            | TableIndexCell t -> sprintf "%A(%d)" t.table t.index
+            | TableIndexCell t -> sprintf "%A[%d]" t.table t.index
     let dump() =
         let dumpTable table =
             let dumpRow idx =
