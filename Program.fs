@@ -82,6 +82,8 @@ let main argv =
         run reader |> ignore
         0
     | s ->
-        printfn "unknown command %s" s
-        printfn ""
+        printfn "unknown command %s, available commands:" s
+        printfn "meta <input> - dumps metadata tables of given assembly"
+        printfn "methods <input> - dumps methods of given assembly"
+        printfn "run <input> - executes given assembly"
         -1
