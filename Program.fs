@@ -1,4 +1,4 @@
-﻿module Fint.CLI
+module Fint.CLI
 
 open System
 open System.IO
@@ -38,15 +38,21 @@ let dumpMethods path =
             | SwitchTarget t -> sprintf "%A" t
             | BranchTarget t -> t.ToString()
             | MetadataToken t ->
-                let result = meta.resolveToken(uint32 t)
+                let result = meta.resolveToken (uint32 t)
                 match result with
                 | StringToken s -> sprintf "0x%X=%A" t s
                 | RowToken r ->
                     let table = meta.findTable r.table
-                    let cells = Array.zip table.columns r.cells |> Array.map (fun (c, v) -> sprintf "%s=%s" c.name (meta.dumpCell v))
+                    let cells =
+                        Array.zip table.columns r.cells
+                        |> Array.map (fun (c, v) -> sprintf "%s=%s" c.name (meta.dumpCell v))
                     sprintf "0x%X=%A(%s)" t r.table (String.Join(";", cells))
             | _ -> ""
-        String.Join("\n", body.code |> Array.map (fun i -> sprintf "%A %s" i.opCode (dumpOperand i.operand)))
+
+        let lines =
+            Array.zip body.code [| 0 .. body.code.Length - 1 |]
+            |> Array.map (fun (i, k) -> sprintf "%d: %A %s" k i.opCode (dumpOperand i.operand))
+        String.Join("\n", lines)
 
     let dumpMethod (m: MethodDef) =
         match m.body() with
@@ -57,7 +63,7 @@ let dumpMethods path =
 
     printfn "methods with body: %d" withBody.Length
     for m in withBody do
-        printfn "%s" (dumpMethod(m))
+        printfn "%s" (dumpMethod (m))
     ()
 
 [<EntryPoint>]
@@ -76,6 +82,6 @@ let main argv =
         run reader |> ignore
         0
     | s ->
-      printfn "unknown command %s" s
-      printfn ""
-      -1
+        printfn "unknown command %s" s
+        printfn ""
+        -1
