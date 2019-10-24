@@ -204,7 +204,7 @@ let MetaReader(reader : BinaryReader) =
         let dumpTable table =
             let dumpRow idx =
                 seekRow table idx
-                let cells = table.columns |> Array.map (fun c -> {|name=c.name;value=dumpCell c;|})
+                let cells = table.columns |> Array.map (fun c -> sprintf "%s=%s" c.name ((dumpCell c).ToString()))
                 cells
             let rows = [| 0 .. table.rowCount - 1 |] |> Array.map dumpRow
             {|table=table.id; tableId=int table.id; rows=rows|}
