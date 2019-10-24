@@ -7,7 +7,7 @@ function run() {
     ./csc.sh ${SAMPLE}
     DLL=${SAMPLE%???}.dll
     EXPECTED=`dotnet ${DLL}`
-    OUT=`dotnet run ${DLL}`
+    OUT=`dotnet run run ${DLL}`
     if [[ $OUT != $EXPECTED ]]
     then
         echo "FAIL ${SAMPLE}"
