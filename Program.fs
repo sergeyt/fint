@@ -28,7 +28,7 @@ let dumpMeta path =
     printfn "%A" (meta.dump())
     ()
 
-let dumpMethods path =
+let ildasm path =
     use input = File.OpenRead(resolvePath path)
     let reader = new BinaryReader(input)
     let meta = MetaReader(reader)
@@ -84,8 +84,8 @@ let main argv =
     | "meta" ->
         dumpMeta argv.[1]
         0
-    | "methods" ->
-        dumpMethods argv.[1]
+    | "ildasm" ->
+        ildasm argv.[1]
         0
     | "run" ->
         use input = File.OpenRead(argv.[1])
