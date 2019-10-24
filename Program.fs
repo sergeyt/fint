@@ -40,11 +40,11 @@ let dumpMethods path =
             | MetadataToken t ->
                 let result = meta.resolveToken(uint32 t)
                 match result with
-                | StringToken s -> sprintf "%A" s
+                | StringToken s -> sprintf "0x%X=%A" t s
                 | RowToken r ->
                     let table = meta.findTable r.table
                     let cells = Array.zip table.columns r.cells |> Array.map (fun (c, v) -> sprintf "%s=%s" c.name (meta.dumpCell v))
-                    sprintf "%d=%A(%s)" t r.table (String.Join(";", cells))
+                    sprintf "0x%X=%A(%s)" t r.table (String.Join(";", cells))
             | _ -> ""
         String.Join("\n", body.code |> Array.map (fun i -> sprintf "%A %s" i.opCode (dumpOperand i.operand)))
 
