@@ -191,21 +191,20 @@ let MetaReader(reader : BinaryReader) =
         let cells = table.columns |> Array.map readCell
         cells
 
+    let dumpCell cell =
+        match cell with
+            | Int16Cell t -> t.ToString()
+            | Int32Cell t -> t.ToString()
+            | StringCell t -> t()
+            | GuidCell t -> t().ToString()
+            | BlobCell t -> sprintf "BLOB[%d]" (t().Length)
+            | TableIndexCell t -> sprintf "%A(%d)" t.table t.index
     let dump() =
-        let dumpCell col =
-            let cell = readCell col
-            match cell with
-                | Int16Cell t -> t :> obj
-                | Int32Cell t -> t :> obj
-                | StringCell t -> t() :> obj
-                | GuidCell t -> t() :> obj
-                | BlobCell t -> sprintf "BLOB[%d]" (t().Length) :> obj
-                | TableIndexCell t -> sprintf "%A(%d)" t.table t.index :> obj
         let dumpTable table =
             let dumpRow idx =
                 seekRow table idx
-                let cells = table.columns |> Array.map (fun c -> sprintf "%s=%s" c.name ((dumpCell c).ToString()))
-                cells
+                let cells = table.columns |> Array.map readCell
+                Array.zip table.columns cells |> Array.map (fun (c, v) -> sprintf "%s=%s" c.name (dumpCell v))
             let rows = [| 0 .. table.rowCount - 1 |] |> Array.map dumpRow
             {|table=table.id; tableId=int table.id; rows=rows|}
         tables |> List.filter (fun t -> t.IsSome) |> List.map (fun t -> dumpTable t.Value)
@@ -356,5 +355,7 @@ let MetaReader(reader : BinaryReader) =
         makeMethod = makeMethod;
         makeTypeRef = makeTypeRef;
         makeMemberRef = makeMemberRef;
-        dump = dump
+        dump = dump;
+        findTable = findTable;
+        dumpCell = dumpCell;
     |}

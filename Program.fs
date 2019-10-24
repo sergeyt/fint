@@ -1,7 +1,10 @@
 ﻿module Fint.CLI
 
+open System
 open System.IO
 open Fint.Enums
+open Fint.MethodBody
+open Fint.Types
 open Fint.MetaReader
 open Fint.Interpreter
 
@@ -23,9 +26,38 @@ let dumpMethods path =
     let meta = MetaReader(reader)
     let methodCount = meta.rowCount TableId.MethodDef
     let methods = [ 0 .. methodCount - 1 ] |> List.map meta.readMethod
-    let body = methods |> List.map (fun m -> m.body()) |> List.filter (fun t -> t <> None)
-    printfn "%A" body
-    printfn "%d" body.Length
+    let withBody = methods |> List.filter (fun m -> m.body() <> None)
+
+    let dumpCode (body: MethodBody) =
+        let dumpOperand v =
+            match v with
+            | Int32Operand t -> t.ToString()
+            | Int64Operand t -> t.ToString()
+            | Float32Operand t -> t.ToString()
+            | Float64Operand t -> t.ToString()
+            | SwitchTarget t -> sprintf "%A" t
+            | BranchTarget t -> t.ToString()
+            | MetadataToken t ->
+                let result = meta.resolveToken(uint32 t)
+                match result with
+                | StringToken s -> sprintf "%A" s
+                | RowToken r ->
+                    let table = meta.findTable r.table
+                    let cells = Array.zip table.columns r.cells |> Array.map (fun (c, v) -> sprintf "%s=%s" c.name (meta.dumpCell v))
+                    sprintf "%d=%A(%s)" t r.table (String.Join(";", cells))
+            | _ -> ""
+        String.Join("\n", body.code |> Array.map (fun i -> sprintf "%A %s" i.opCode (dumpOperand i.operand)))
+
+    let dumpMethod (m: MethodDef) =
+        match m.body() with
+        | Some body ->
+            let sep = new String('-', m.name.Length)
+            sprintf "%s\n%s\n%s\n%s" sep m.name sep (dumpCode body)
+        | None -> failwith "expect method body"
+
+    printfn "methods with body: %d" withBody.Length
+    for m in withBody do
+        printfn "%s" (dumpMethod(m))
     ()
 
 [<EntryPoint>]
