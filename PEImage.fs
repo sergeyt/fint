@@ -81,7 +81,7 @@ let ReadSections(reader : BinaryReader, count : int) =
     }
     |> List.ofSeq
 
-let ReadExecutableHeaders(reader : BinaryReader) =
+let ReadPE(reader : BinaryReader) =
     // - DOSHeader
     // PE: 2
     // Start: 58

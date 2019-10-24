@@ -6,12 +6,20 @@ open Fint.Enums
 open Fint.MethodBody
 open Fint.Types
 open Fint.MetaReader
+open Fint.PEImage
 open Fint.Interpreter
 
 let resolvePath path =
     match path with
     | "corlib" -> (typeof<string>).Assembly.Location
     | t -> t
+
+let dumpPE path =
+    use input = File.OpenRead(resolvePath path)
+    let reader = new BinaryReader(input)
+    let data = ReadPE(reader)
+    printfn "%A" data
+    ()
 
 let dumpMeta path =
     use input = File.OpenRead(resolvePath path)
@@ -70,6 +78,9 @@ let dumpMethods path =
 let main argv =
     let cmd = argv.[0]
     match cmd with
+    | "pe" ->
+        dumpPE argv.[1]
+        0
     | "meta" ->
         dumpMeta argv.[1]
         0
@@ -83,6 +94,7 @@ let main argv =
         0
     | s ->
         printfn "unknown command %s, available commands:" s
+        printfn "pe <input> - dumps PE data of given assembly"
         printfn "meta <input> - dumps metadata tables of given assembly"
         printfn "methods <input> - dumps methods of given assembly"
         printfn "run <input> - executes given assembly"

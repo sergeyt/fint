@@ -20,7 +20,7 @@ let tryGet (d : IDictionary<'k, 'v>) (key : 'k) (init: unit -> 'v) =
                       v
 
 let MetaReader(reader : BinaryReader) =
-    let image = ReadExecutableHeaders(reader)
+    let image = ReadPE(reader)
     // goto metadata
     let startOffset = ResolveVirtualAddress(image.Sections, image.Metadata.VirtualAddress)
     Move(reader, startOffset)
