@@ -76,10 +76,7 @@ let ReadSection(reader : BinaryReader) =
     result
 
 let ReadSections(reader : BinaryReader, count : int) =
-    seq {
-        for _ in 1..count -> ReadSection(reader)
-    }
-    |> List.ofSeq
+    [1..count] |> List.map (fun _ -> ReadSection(reader))
 
 let ReadPE(reader : BinaryReader) =
     // - DOSHeader
