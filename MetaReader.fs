@@ -80,7 +80,7 @@ let MetaReader(reader : BinaryReader) =
             | None -> 0
             | Some t -> t
     let sizeOfIndex n = if n >= 0x10000 then 4 else 2
-    let mutable codedIndexSizes = new Dictionary<CodedIndexId, int>()
+    let codedIndexSizes = new Dictionary<CodedIndexId, int>()
     let codedIndexSize i =
         let calc() =
             let maxRowCount = i.tables |> Array.map rowCount |> Array.max
