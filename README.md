@@ -2,7 +2,11 @@
 
 ECMA-335 CIL interpreter in pure F#
 
-# How to run all tests
+## Requirements
+
+- .NET Core 2.2+
+
+## How to run all tests
 
 `./test.sh all`
 
