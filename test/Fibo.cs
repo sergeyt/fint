@@ -6,7 +6,7 @@ class Fibo
     {
         if (x > 1)
         {
-            return (fib((x - 1)) + fib((x - 2)));
+            return fib(x - 1) + fib(x - 2);
         }
         return x;
     }
