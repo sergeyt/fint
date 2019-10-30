@@ -26,6 +26,8 @@ let dumpMeta path =
     let reader = new BinaryReader(input)
     let meta = MetaReader(reader)
     printfn "%A" (meta.dump())
+    let tables = meta.tables |> List.filter (fun t -> t.IsSome)
+    printfn "%A" tables.Length
     ()
 
 let ildasm path =
