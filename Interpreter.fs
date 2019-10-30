@@ -26,7 +26,6 @@ let expectBody method =
 
 let run reader =
     let meta = MetaReader(reader)
-    let entry = meta.readEntryPoint()
 
     let mutable callStack = Empty
     
@@ -581,11 +580,9 @@ let run reader =
             c <- op c
         c
 
-    let start main =
-        let ctx = makeCall main [||]
+    match meta.readEntryPoint() with
+    | None -> failwith "no entry point"
+    | Some method ->
+        let ctx = makeCall method [||]
         eval ctx |> ignore
         0
-
-    match entry with
-    | None -> failwith "no entry point"
-    | Some m -> start m
