@@ -116,6 +116,8 @@ let run reader =
         { ctx with callStack = callStack }
 
     let rec eval ctx =
+        let body = expectBody ctx.method
+
         let goto ctx i = { ctx with ip = i }
         let next ctx = goto ctx (ctx.ip + 1)
         let push ctx value = next { ctx with stack = ctx.stack.Push value }
@@ -422,7 +424,6 @@ let run reader =
             | _ -> failwith "expect MethodDef or MemberRef"
 
         let op ctx =
-            let body = expectBody ctx.method
             let i = body.code.[ctx.ip]
             match i.code with
             | InstructionCode.Nop -> next ctx
@@ -575,7 +576,6 @@ let run reader =
             | InstructionCode.Conv_R_Un -> convun ctx TypeCode.Single false
             | _ -> failwith "not implemented"
 
-        let body = expectBody ctx.method
         let mutable c = ctx
         while c.ip < body.code.Length do
             c <- op c
