@@ -1,6 +1,6 @@
 # FINT
 
-ECMA-335 CIL interpreter in pure F#
+.NET CIL interpreter in pure F#
 
 ## Requirements
 
