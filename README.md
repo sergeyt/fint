@@ -1,6 +1,6 @@
 # FINT
 
-.NET CIL interpreter in pure F#
+.NET CIL interpreter in pure F# prepared for [NskDotNet Meetup #6](https://www.meetup.com/NskDotNet/events/265652338/).
 
 ## Requirements
 
