@@ -11,3 +11,7 @@
 `./test.sh all`
 
 See test.sh script
+
+## Roadmap
+
+- [ ] compile into web assembly and run interpretter in browser just for fun and education purposes
